@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'student' | 'teacher' | 'parent'>('student');
+  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
@@ -48,16 +48,6 @@ export default function LoginPage() {
               }`}
             >
               Teacher
-            </button>
-            <button
-              onClick={() => setUserType('parent')}
-              className={`flex-1 py-2 px-4 rounded-full font-semibold transition-all ${
-                userType === 'parent'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Parent
             </button>
           </div>
 
@@ -103,15 +93,6 @@ export default function LoginPage() {
               Sign In
             </button>
 
-            {/* Sign Up Link */}
-            {userType === 'parent' && (
-              <p className="text-center text-gray-600 text-sm">
-                Don't have an account?{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
-                  Request Access
-                </a>
-              </p>
-            )}
           </form>
 
           {/* Quick Access for Students */}
