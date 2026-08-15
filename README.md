@@ -47,6 +47,7 @@ This Learning Management System (LMS) is specifically designed for young learner
 
 - Node.js 20+ installed
 - npm or yarn package manager
+- XAMPP (for MySQL database)
 - Modern web browser
 
 ### Installation
@@ -62,14 +63,52 @@ cd thesis-app
 npm install
 ```
 
-3. Run the development server:
+3. Set up the database:
+```bash
+# Configure .env file with your MySQL credentials
+# See DATABASE_SETUP.md for detailed instructions
+
+# Test database connection
+npm run db:test
+
+# Run migrations to create tables
+npm run db:migrate
+```
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to:
+5. Open your browser and navigate to:
 ```
 http://localhost:3000
+```
+
+### Database Setup
+
+This project uses MySQL (XAMPP) for data storage. Quick setup:
+
+1. **Start XAMPP** - Start MySQL service
+2. **Create Database** - Create `thesis_db` in phpMyAdmin
+3. **Configure** - Update `.env` with your credentials
+4. **Test Connection** - Run `npm run db:test`
+5. **Run Migrations** - Run `npm run db:migrate`
+
+📚 **Detailed guides:**
+- [DATABASE_SETUP.md](./DATABASE_SETUP.md) - Complete setup instructions
+- [DATABASE_COMMANDS.md](./DATABASE_COMMANDS.md) - Quick command reference
+- [HOW_TO_MIGRATE.md](./HOW_TO_MIGRATE.md) - Migration guide
+
+### Available NPM Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run db:test      # Test database connection
+npm run db:migrate   # Run database migrations
 ```
 
 ## 📁 Project Structure
@@ -160,6 +199,8 @@ thesis-app/
 - **React 19.2.8** - UI library
 - **TypeScript 5** - Type-safe development
 - **Tailwind CSS 4** - Utility-first CSS framework
+- **MySQL 8.0** - Relational database (via XAMPP)
+- **mysql2** - MySQL client for Node.js
 - **Turbopack** - Fast bundler for development
 
 ## 🎯 Target Audience

@@ -108,7 +108,7 @@ function Icon({ type, className = 'h-5 w-5' }: { type: string; className?: strin
     case 'star':
       return (
         <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-          <path d="m12 2.75 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 0 6.7 18.06l1.01-5.9L3.42 9l5.93-.86L12 2.75Z" />
+          <path d="m12 2.75 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 16.25 6.7 18.86l1.01-5.9L3.42 9l5.93-.86L12 2.75Z" />
         </svg>
       );
     case 'trend':

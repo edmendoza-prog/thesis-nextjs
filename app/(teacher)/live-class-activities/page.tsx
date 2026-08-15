@@ -1,57 +1,45 @@
 'use client';
 
-import Link from 'next/link';
-
 const activities = [
   {
     id: 'spin-wheel',
     title: 'Spin the Wheel',
     description: 'Random student selector with rewards',
-    emoji: '🎡',
-    banner: 'from-[#a855f7] to-[#ec4899]',
-    button: 'from-[#a855f7] to-[#ec4899]',
+    color: 'from-primary-400 to-primary-600',
+    icon: '🎡',
+    buttonColor: 'bg-primary-500 hover:bg-primary-600',
   },
   {
     id: 'racing-game',
     title: 'Racing Game',
     description: 'Fast-paced team competition challenge',
-    emoji: '🏁',
-    banner: 'from-[#3b82f6] to-[#22d3ee]',
-    button: 'from-[#3b82f6] to-[#22d3ee]',
+    color: 'from-accent-400 to-accent-600',
+    icon: '🏁',
+    buttonColor: 'bg-accent-500 hover:bg-accent-600',
+  },
+  {
+    id: 'quiz-battle',
+    title: 'Quiz Battle',
+    description: 'Live classroom quiz showdown',
+    color: 'from-secondary-400 to-secondary-600',
+    icon: '🎯',
+    buttonColor: 'bg-secondary-500 hover:bg-secondary-600',
   },
 ];
 
-const steps = [
-  { number: 1, color: 'bg-[#60a5fa]', text: 'Choose an activity - Click on any game card above' },
-  { number: 2, color: 'bg-[#4ade80]', text: 'Prepare the class - Set the game rules and participants' },
-  { number: 3, color: 'bg-[#a78bfa]', text: 'Launch the session - Start and display it for the class' },
-  { number: 4, color: 'bg-[#fbbf24]', text: 'Track results - Celebrate winners and review progress' },
+const howToSteps = [
+  { number: 1, title: 'Choose an activity', description: 'Click on any game card above', color: 'bg-primary-500' },
+  { number: 2, title: 'Prepare the class', description: 'Set the game rules and participants', color: 'bg-accent-500' },
+  { number: 3, title: 'Launch the session', description: 'Start and display it for the class', color: 'bg-secondary-500' },
+  { number: 4, title: 'Track results', description: 'Celebrate winners and review progress', color: 'bg-[#f97316]' },
 ];
 
-function Icon({ type, className = 'h-5 w-5' }: { type: string; className?: string }) {
+function Icon({ type, className = "h-5 w-5" }: { type: string; className?: string }) {
   switch (type) {
-    case 'home':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
-          <path d="M3 10.5 12 3l9 7.5" />
-          <path d="M5 9.5V20h14V9.5" />
-          <path d="M9 20v-7h6v7" />
-        </svg>
-      );
     case 'gamepad':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-          <path d="M6 14V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" />
-          <path d="M8 11h2M9 10v2M15 11h.01M18 10v2" />
-          <path d="M8 15h8" />
-        </svg>
-      );
-    case 'play':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-          <path d="m8 5 11 7-11 7V5Z" />
-        </svg>
-      );
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="6" x2="10" y1="11" y2="11" /><line x1="8" x2="8" y1="9" y2="13" /><line x1="15" x2="15.01" y1="12" y2="12" /><line x1="18" x2="18.01" y1="10" y2="10" /><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z" /></svg>;
+    case 'arrow-right':
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14m-7-7 7 7-7 7" /></svg>;
     default:
       return null;
   }
@@ -59,79 +47,72 @@ function Icon({ type, className = 'h-5 w-5' }: { type: string; className?: strin
 
 export default function LiveClassActivitiesPage() {
   return (
-    <div className="min-h-screen bg-[linear-gradient(135deg,#f7a35d_0%,#f67d4e_32%,#ee5d89_100%)] px-3 py-5 sm:px-4 lg:px-6">
-      <div className="mx-auto w-full max-w-[820px]">
-        <header className="mb-5 flex items-center gap-3 text-white">
-          <Link
-            href="/dashboard"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#1f2937] shadow-[0_10px_20px_rgba(123,52,25,0.18)] transition-transform hover:-translate-y-0.5"
-            aria-label="Back to dashboard"
-          >
-            <Icon type="home" className="h-6 w-6 text-[#1f2937]" />
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#3a2b7d] shadow-md">
-              <Icon type="gamepad" className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-[2.2rem] font-extrabold leading-none tracking-tight text-white sm:text-[2.7rem]">Live Class Activities</h1>
+    <div className="max-w-6xl">
+      {/* Header */}
+      <header className="mb-6 animate-fadeInUp">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#f97316] flex items-center justify-center">
+            <Icon type="gamepad" className="h-7 w-7 text-white" />
           </div>
-        </header>
+          <h1 className="text-4xl font-heading font-bold text-foreground-900">Live Class Activities</h1>
+        </div>
+      </header>
 
-        <section className="mb-7 rounded-[18px] border border-white/10 bg-[#f4c9c1]/40 p-4 text-white shadow-[0_14px_26px_rgba(127,52,15,0.12)] backdrop-blur-sm sm:p-5">
-          <h2 className="text-[1.7rem] font-extrabold leading-none sm:text-[1.9rem]">Teacher-Controlled Activities</h2>
-          <p className="mt-2 text-[0.92rem] text-white/90 sm:text-[1rem]">
-            These activities are designed for live classroom presentation. You control the game while students participate together!
-          </p>
-        </section>
+      {/* Info Banner */}
+      <div className="bg-gradient-to-r from-primary-100 to-primary-200 rounded-2xl border border-primary-300/50 p-6 mb-6 animate-fadeInUp" style={{ animationDelay: '100ms' }}>
+        <h2 className="font-heading font-bold text-xl text-foreground-900 mb-2">Teacher-Controlled Activities</h2>
+        <p className="text-foreground-700 font-body">
+          These activities are designed for live classroom presentation. You control the game while students participate together!
+        </p>
+      </div>
 
-        <section className="mb-7 grid gap-6 md:grid-cols-2">
-          {activities.map((activity) => (
-            <div
-              key={activity.id}
-              className="overflow-hidden rounded-[24px] bg-white shadow-[0_16px_28px_rgba(127,52,15,0.12)]"
-            >
-              <div className={`flex h-[138px] items-center justify-center bg-gradient-to-r ${activity.banner} text-[3.8rem]`}>
-                <span>{activity.emoji}</span>
+      {/* Activity Cards */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {activities.map((activity, idx) => (
+          <div
+            key={activity.id}
+            className="bg-background-50 rounded-2xl border border-background-200/70 overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-fadeInUp"
+            style={{ animationDelay: `${(idx + 2) * 100}ms` }}
+          >
+            {/* Colored Top Section */}
+            <div className={`h-32 bg-gradient-to-br ${activity.color} flex items-center justify-center`}>
+              <div className="text-6xl">{activity.icon}</div>
+            </div>
+
+            {/* White Body */}
+            <div className="p-5">
+              <h3 className="font-heading font-bold text-xl text-foreground-900 mb-2">{activity.title}</h3>
+              <p className="text-sm text-foreground-600 font-body mb-4">{activity.description}</p>
+              <button className={`w-full py-3 ${activity.buttonColor} text-white font-bold rounded-xl transition-all duration-300 font-body flex items-center justify-center gap-2 whitespace-nowrap`}>
+                Start Activity
+                <Icon type="arrow-right" className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* How to Use */}
+      <section className="bg-background-50 rounded-2xl border border-background-200/70 p-6 animate-fadeInUp" style={{ animationDelay: '500ms' }}>
+        <div className="flex items-center gap-2 mb-6">
+          <div className="text-3xl">💡</div>
+          <h2 className="text-2xl font-heading font-bold text-foreground-900">How to Use Live Activities</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {howToSteps.map((step) => (
+            <div key={step.number} className="flex items-start gap-4 p-4 rounded-xl bg-background-100 hover:bg-background-200 transition-colors">
+              <div className={`w-10 h-10 rounded-full ${step.color} flex items-center justify-center flex-shrink-0`}>
+                <span className="text-white font-heading font-bold text-lg">{step.number}</span>
               </div>
-
-              <div className="px-5 pb-5 pt-4">
-                <h3 className="text-[1.8rem] font-extrabold leading-none tracking-[-0.03em] text-[#1f2937]">{activity.title}</h3>
-                <p className="mt-2 text-[0.98rem] text-[#6b7280]">{activity.description}</p>
-
-                <button
-                  type="button"
-                  className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r ${activity.button} px-4 py-3 text-[1rem] font-extrabold text-white shadow-[0_10px_18px_rgba(112,65,170,0.18)]`}
-                >
-                  Start Activity
-                  <span aria-hidden="true">→</span>
-                </button>
+              <div>
+                <h3 className="font-heading font-bold text-foreground-900 mb-1">{step.title}</h3>
+                <p className="text-sm text-foreground-600 font-body">{step.description}</p>
               </div>
             </div>
           ))}
-        </section>
-
-        <section className="rounded-[22px] bg-white p-5 shadow-[0_16px_28px_rgba(127,52,15,0.12)] sm:p-6">
-          <div className="mb-5 flex items-center gap-3 text-[#1f2937]">
-            <span className="text-[2rem]">💡</span>
-            <h3 className="text-[1.8rem] font-extrabold leading-none">How to Use Live Activities</h3>
-          </div>
-
-          <div className="space-y-4">
-            {steps.map((step) => (
-              <div key={step.number} className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${step.color} text-[1.05rem] font-extrabold text-white`}>
-                  {step.number}
-                </div>
-                <div className="text-[1rem] leading-normal text-[#1f2937]">
-                  <span className="font-extrabold">{step.text.split(' - ')[0]}</span>
-                  <span className="text-[#6b7280]"> - {step.text.split(' - ')[1]}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
