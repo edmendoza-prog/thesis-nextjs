@@ -1,17 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused' | null;
 
-const students = [
-  { id: 101, name: 'Ava Carter', emoji: '🦊' },
-  { id: 102, name: 'Leo Martin', emoji: '🦁' },
-  { id: 103, name: 'Mila Patel', emoji: '🐸' },
-  { id: 104, name: 'Noah Kim', emoji: '🐼' },
-  { id: 105, name: 'Sophia Reed', emoji: '🦄' },
-  { id: 106, name: 'Ethan Ross', emoji: '🐻' },
-];
+type StudentRecord = { id: number; name: string; email?: string; emoji?: string };
 
 function Icon({ type, className = "h-5 w-5" }: { type: string; className?: string }) {
   switch (type) {
@@ -35,16 +28,30 @@ function Icon({ type, className = "h-5 w-5" }: { type: string; className?: strin
 }
 
 export default function AttendanceManagementPage() {
-  const [attendance, setAttendance] = useState<Record<number, AttendanceStatus>>({
-    101: 'present',
-    102: 'absent',
-    103: 'late',
-    104: 'present',
-    105: 'excused',
-    106: 'absent',
-  });
+  const [students, setStudents] = useState<StudentRecord[]>([]);
+  const [attendance, setAttendance] = useState<Record<number, AttendanceStatus>>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDate, setSelectedDate] = useState('2026-08-15');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function loadAttendanceData() {
+      try {
+        const response = await fetch(`/api/teacher/attendance?classId=1&date=${selectedDate}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load attendance');
+        setStudents((data.students ?? []).map((student: StudentRecord) => ({ ...student, emoji: student.emoji ?? '🎓' })));
+        setAttendance(data.attendance ?? {});
+      } catch (error) {
+        console.error('Attendance fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAttendanceData();
+  }, [selectedDate]);
 
   const stats = useMemo(() => {
     const present = Object.values(attendance).filter(s => s === 'present').length;
@@ -54,7 +61,7 @@ export default function AttendanceManagementPage() {
     const rate = students.length > 0 ? ((present / students.length) * 100).toFixed(1) : '0.0';
     
     return { total: students.length, present, absent, late, excused, rate };
-  }, [attendance]);
+  }, [attendance, students]);
 
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,6 +69,36 @@ export default function AttendanceManagementPage() {
 
   const updateStatus = (studentId: number, status: AttendanceStatus) => {
     setAttendance(prev => ({ ...prev, [studentId]: status }));
+  };
+
+  const saveAttendance = async () => {
+    try {
+      setSaving(true);
+      const payload = {
+        action: 'save',
+        classId: 1,
+        date: selectedDate,
+        attendance: students.map((student) => ({
+          student_id: student.id,
+          status: attendance[student.id] ?? 'present',
+        })),
+      };
+
+      const response = await fetch('/api/teacher/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save attendance');
+      alert('Attendance saved successfully');
+    } catch (error) {
+      console.error('Save attendance error:', error);
+      alert(error instanceof Error ? error.message : 'Unable to save attendance');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -157,6 +194,9 @@ export default function AttendanceManagementPage() {
       {/* Student List */}
       <section className="bg-background-50 rounded-2xl border border-background-200/70 p-6 animate-fadeInUp" style={{ animationDelay: '450ms' }}>
         <h2 className="font-heading font-bold text-2xl text-foreground-900 mb-5">Mark Attendance</h2>
+        {loading ? (
+          <div className="text-sm text-foreground-500 font-body">Loading attendance...</div>
+        ) : (
         <div className="space-y-3 mb-6">
           {filteredStudents.map((student) => {
             const status = attendance[student.id];
@@ -217,9 +257,15 @@ export default function AttendanceManagementPage() {
             );
           })}
         </div>
-        <button className="w-full py-4 bg-accent-500 text-white font-bold rounded-2xl transition-all duration-300 hover:bg-accent-600 hover:scale-[1.01] font-body flex items-center justify-center gap-3 whitespace-nowrap">
+        )}
+        <button
+          type="button"
+          onClick={saveAttendance}
+          disabled={saving}
+          className="w-full py-4 bg-accent-500 text-white font-bold rounded-2xl transition-all duration-300 hover:bg-accent-600 hover:scale-[1.01] font-body flex items-center justify-center gap-3 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
+        >
           <Icon type="save" className="h-5 w-5" />
-          Save Attendance
+          {saving ? 'Saving Attendance...' : 'Save Attendance'}
         </button>
       </section>
     </div>

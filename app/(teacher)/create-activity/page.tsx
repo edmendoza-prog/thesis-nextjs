@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const gameTypes = [
   { id: 'quiz', label: 'Quiz Adventure', icon: '📝' },
@@ -27,6 +27,66 @@ export default function CreateActivityPage() {
   const [selectedGame, setSelectedGame] = useState('quiz');
   const [visibility, setVisibility] = useState('section');
   const [includeQuiz, setIncludeQuiz] = useState(false);
+  const [classes, setClasses] = useState<{ id: number; name: string }[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [title, setTitle] = useState('');
+  const [classId, setClassId] = useState('');
+  const [subject, setSubject] = useState('Math');
+  const [points, setPoints] = useState('50');
+  const [badge, setBadge] = useState('');
+
+  useEffect(() => {
+    async function loadClasses() {
+      try {
+        const response = await fetch('/api/teacher/create-activity');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load classes');
+        setClasses(data.classes ?? []);
+        if (data.classes?.[0]) setClassId(String(data.classes[0].id));
+      } catch (error) {
+        console.error('Class fetch error:', error);
+      }
+    }
+
+    loadClasses();
+  }, []);
+
+  const handleSaveActivity = async () => {
+    if (!title.trim() || !classId) {
+      alert('Please add an activity title and choose a class');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await fetch('/api/teacher/create-activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          class_id: Number(classId),
+          subject,
+          activity_type: selectedGame,
+          visibility,
+          include_quiz: includeQuiz,
+          points: Number(points || 0),
+          badge: badge.trim(),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to create activity');
+      alert('Activity saved successfully');
+      setTitle('');
+      setBadge('');
+      setPoints('50');
+    } catch (error) {
+      console.error('Create activity error:', error);
+      alert(error instanceof Error ? error.message : 'Unable to save activity');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -52,6 +112,8 @@ export default function CreateActivityPage() {
               <label className="block text-sm font-semibold text-foreground-700 mb-2 font-body">Activity Title</label>
               <input 
                 type="text" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter activity title"
                 className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body"
               />
@@ -59,20 +121,29 @@ export default function CreateActivityPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-foreground-700 mb-2 font-body">Select Class</label>
-                <select className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body">
-                  <option>Choose a class</option>
-                  <option>Grade 1</option>
-                  <option>Grade 2</option>
-                  <option>Grade 3</option>
+                <select
+                  value={classId}
+                  onChange={(e) => setClassId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body"
+                >
+                  <option value="">Choose a class</option>
+                  {classes.map((classItem) => (
+                    <option key={classItem.id} value={classItem.id}>{classItem.name}</option>
+                  ))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-foreground-700 mb-2 font-body">Select Subject</label>
-                <select className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body">
+                <select
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body"
+                >
                   <option>Choose a subject</option>
                   <option>Math</option>
                   <option>Science</option>
                   <option>English</option>
+                  <option>Reading</option>
                 </select>
               </div>
             </div>
@@ -214,7 +285,8 @@ export default function CreateActivityPage() {
               <label className="block text-sm font-semibold text-foreground-700 mb-2 font-body">Assign Points</label>
               <input 
                 type="number" 
-                defaultValue={50}
+                value={points}
+                onChange={(e) => setPoints(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body"
               />
             </div>
@@ -222,6 +294,8 @@ export default function CreateActivityPage() {
               <label className="block text-sm font-semibold text-foreground-700 mb-2 font-body">Assign Badge (Optional)</label>
               <input 
                 type="text" 
+                value={badge}
+                onChange={(e) => setBadge(e.target.value)}
                 placeholder="e.g., Math Master"
                 className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body"
               />
@@ -230,9 +304,15 @@ export default function CreateActivityPage() {
         </section>
 
         {/* Save Button */}
-        <button className="w-full py-4 bg-accent-500 text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:bg-accent-600 hover:scale-[1.01] font-body flex items-center justify-center gap-3 animate-fadeInUp whitespace-nowrap" style={{ animationDelay: '700ms' }}>
+        <button
+          type="button"
+          onClick={handleSaveActivity}
+          disabled={saving}
+          className="w-full py-4 bg-accent-500 text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:bg-accent-600 hover:scale-[1.01] font-body flex items-center justify-center gap-3 animate-fadeInUp whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ animationDelay: '700ms' }}
+        >
           <Icon type="save" className="h-6 w-6" />
-          Save Activity
+          {saving ? 'Saving Activity...' : 'Save Activity'}
         </button>
       </div>
     </div>

@@ -100,10 +100,10 @@ export default function LoginPage() {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-center text-sm text-gray-600 mb-3">Quick Demo Access</p>
               <Link
-                href="/dashboard"
+                href="/student-dashboard"
                 className="block w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 rounded-xl text-center transition-colors"
               >
-                Try Demo Dashboard 🎮
+                Try Student Dashboard 🎮
               </Link>
             </div>
           )}

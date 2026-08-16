@@ -1,15 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const availableStudents = [
-  { id: 102, name: 'Leo Martin', email: 'leomartin@school.com', emoji: '🦁' },
-  { id: 103, name: 'Mila Patel', email: 'mila.patel@school.com', emoji: '🐸' },
-  { id: 104, name: 'Noah Kim', email: 'noah.kim@school.com', emoji: '🐼' },
-  { id: 105, name: 'Sophia Reed', email: 'sophia.reed@school.com', emoji: '🐨' },
-  { id: 106, name: 'Ethan Ross', email: 'ethan.ross@school.com', emoji: '🦊' },
-  { id: 107, name: 'Lily Chen', email: 'lily.chen@school.com', emoji: '🐰' },
-];
+type StudentItem = { id: number; name: string; email: string; emoji: string };
 
 function Icon({ type, className = "h-5 w-5" }: { type: string; className?: string }) {
   switch (type) {
@@ -29,18 +22,87 @@ function Icon({ type, className = "h-5 w-5" }: { type: string; className?: strin
 }
 
 export default function EnrollStudentsPage() {
-  const [enrolled, setEnrolled] = useState([{ id: 101, name: 'Ava Carter', email: 'ava.carter@school.com', emoji: '🐱' }]);
-  const [available, setAvailable] = useState(availableStudents);
+  const [enrolled, setEnrolled] = useState<StudentItem[]>([]);
+  const [available, setAvailable] = useState<StudentItem[]>([]);
+  const [classes, setClasses] = useState<Array<{ id: number; name: string; section: string }>>([]);
+  const [selectedClassId, setSelectedClassId] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const enrollStudent = (student: typeof availableStudents[0]) => {
-    setEnrolled([...enrolled, student]);
-    setAvailable(available.filter(s => s.id !== student.id));
+  useEffect(() => {
+    async function loadClasses() {
+      try {
+        const response = await fetch('/api/teacher/grades');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load classes');
+
+        const list = data.grades ?? [];
+        setClasses(list);
+        if (list.length > 0) {
+          setSelectedClassId(list[0].id);
+        }
+      } catch (error) {
+        console.error('Classes fetch error:', error);
+      }
+    }
+
+    loadClasses();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedClassId) return;
+
+    async function loadEnrollmentData() {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/teacher/enrollment?classId=${selectedClassId}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load enrollment data');
+        setEnrolled(data.enrolled ?? []);
+        setAvailable(data.available ?? []);
+      } catch (error) {
+        console.error('Enrollment fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadEnrollmentData();
+  }, [selectedClassId]);
+
+  const enrollStudent = (student: StudentItem) => {
+    setEnrolled((current) => [...current, student]);
+    setAvailable((current) => current.filter((s) => s.id !== student.id));
   };
 
-  const removeStudent = (student: typeof enrolled[0]) => {
-    setAvailable([...available, student]);
-    setEnrolled(enrolled.filter(s => s.id !== student.id));
+  const removeStudent = (student: StudentItem) => {
+    setAvailable((current) => [...current, student]);
+    setEnrolled((current) => current.filter((s) => s.id !== student.id));
+  };
+
+  const saveEnrollment = async () => {
+    try {
+      setSaving(true);
+      const response = await fetch('/api/teacher/enrollment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          classId: selectedClassId,
+          enrolledIds: enrolled.map((student) => student.id),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save enrollment');
+      alert('Enrollment saved successfully');
+    } catch (error) {
+      console.error('Save enrollment error:', error);
+      alert(error instanceof Error ? error.message : 'Unable to save enrollment');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filteredAvailable = available.filter(s => 
@@ -62,13 +124,20 @@ export default function EnrollStudentsPage() {
         {/* Class Selector */}
         <div className="bg-background-50 rounded-2xl border border-background-200/70 p-5">
           <label className="block text-sm font-semibold text-foreground-700 mb-2 font-body">SELECT CLASS/SECTION</label>
-          <select className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body text-foreground-900">
-            <option>Grade 1 - Section A</option>
-            <option>Grade 1 - Section B</option>
-            <option>Grade 2 - Section A</option>
-            <option>Grade 2 - Section B</option>
-            <option>Grade 3 - Section A</option>
-            <option>Grade 3 - Section B</option>
+          <select
+            value={selectedClassId || ''}
+            onChange={(event) => setSelectedClassId(Number(event.target.value))}
+            className="w-full px-4 py-3 rounded-xl border border-background-300 bg-background-50 focus:outline-none focus:ring-2 focus:ring-primary-300 font-body text-foreground-900"
+          >
+            {classes.length === 0 ? (
+              <option value="">No classes available</option>
+            ) : (
+              classes.map((classItem) => (
+                <option key={classItem.id} value={classItem.id}>
+                  {classItem.name}
+                </option>
+              ))
+            )}
           </select>
         </div>
       </header>
@@ -92,7 +161,10 @@ export default function EnrollStudentsPage() {
           </div>
 
           {/* Student List */}
-          <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          {loading ? (
+            <div className="text-sm text-foreground-500 font-body">Loading students...</div>
+          ) : (
+          <div className="space-y-2 max-h-125 overflow-y-auto">
             {filteredAvailable.map((student) => (
               <div key={student.id} className="flex items-center justify-between p-3 rounded-xl bg-background-100 hover:bg-background-200 transition-colors">
                 <div className="flex items-center gap-3">
@@ -113,6 +185,7 @@ export default function EnrollStudentsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Enrolled Students */}
@@ -122,7 +195,10 @@ export default function EnrollStudentsPage() {
           </h2>
           
           {/* Student List */}
-          <div className="space-y-2 mb-6 max-h-[500px] overflow-y-auto">
+          {loading ? (
+            <div className="text-sm text-foreground-500 font-body">Loading enrolled students...</div>
+          ) : (
+          <div className="space-y-2 mb-6 max-h-125 overflow-y-auto">
             {enrolled.length === 0 ? (
               <div className="text-center py-12 text-foreground-500 font-body">
                 No students enrolled yet. Add students from the left panel.
@@ -149,11 +225,17 @@ export default function EnrollStudentsPage() {
               ))
             )}
           </div>
+          )}
 
           {/* Save Button */}
-          <button className="w-full py-4 bg-accent-500 text-white font-bold rounded-2xl transition-all duration-300 hover:bg-accent-600 hover:scale-[1.01] font-body flex items-center justify-center gap-3 whitespace-nowrap">
+          <button
+            type="button"
+            onClick={saveEnrollment}
+            disabled={saving}
+            className="w-full py-4 bg-accent-500 text-white font-bold rounded-2xl transition-all duration-300 hover:bg-accent-600 hover:scale-[1.01] font-body flex items-center justify-center gap-3 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
+          >
             <Icon type="save" className="h-5 w-5" />
-            Save Enrollment
+            {saving ? 'Saving Enrollment...' : 'Save Enrollment'}
           </button>
         </div>
       </div>

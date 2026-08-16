@@ -1,30 +1,50 @@
 'use client';
 
-const stats = [
-  { label: 'Total Students', value: '125', delta: '+12', iconColor: 'bg-accent-100', iconTextColor: 'text-accent-600', icon: 'users' },
-  { label: 'Active Activities', value: '18', delta: '+3', iconColor: 'bg-secondary-100', iconTextColor: 'text-secondary-600', icon: 'activity' },
-  { label: 'Completed Activities', value: '156', delta: '+28', iconColor: 'bg-accent-100', iconTextColor: 'text-accent-600', icon: 'check-circle' },
-  { label: 'Average Class Score', value: '87%', delta: '+5%', iconColor: 'bg-secondary-100', iconTextColor: 'text-secondary-600', icon: 'chart' },
+import { useEffect, useState } from 'react';
+
+type DashboardStat = {
+  label: string;
+  value: string;
+  delta: string;
+  iconColor: string;
+  iconTextColor: string;
+  icon: string;
+};
+
+type DashboardItem = {
+  name: string;
+  initials: string;
+  color: string;
+  action: string;
+  score: string;
+  time: string;
+};
+
+type NotificationItem = {
+  title: string;
+  time: string;
+  borderColor: string;
+  bgColor: string;
+};
+
+type UpcomingActivityItem = {
+  title: string;
+  grade: string;
+  dueDate: string;
+  status: string;
+  statusColor: string;
+};
+
+const defaultStats: DashboardStat[] = [
+  { label: 'Total Students', value: '0', delta: '+0', iconColor: 'bg-accent-100', iconTextColor: 'text-accent-600', icon: 'users' },
+  { label: 'Active Activities', value: '0', delta: '+0', iconColor: 'bg-secondary-100', iconTextColor: 'text-secondary-600', icon: 'activity' },
+  { label: 'Completed Activities', value: '0', delta: '+0', iconColor: 'bg-accent-100', iconTextColor: 'text-accent-600', icon: 'check-circle' },
+  { label: 'Average Class Score', value: '0%', delta: '+0%', iconColor: 'bg-secondary-100', iconTextColor: 'text-secondary-600', icon: 'chart' },
 ];
 
-const recentActivity = [
-  { name: 'Sarah', initials: 'S', color: 'bg-secondary-200', action: 'Completed Quiz Adventure', score: '95%', time: '5 min ago' },
-  { name: 'Mike', initials: 'M', color: 'bg-primary-200', action: 'Started Speed Challenge', score: '', time: '12 min ago' },
-  { name: 'Emma', initials: 'E', color: 'bg-secondary-200', action: 'Completed Matching Game', score: '88%', time: '20 min ago' },
-  { name: 'Alex', initials: 'A', color: 'bg-accent-200', action: 'Unlocked Math Master Badge', score: '', time: '1 hour ago' },
-];
-
-const notifications = [
-  { title: '15 students completed today\'s activities', time: '1 hour ago', borderColor: 'border-l-[#16a34a]', bgColor: 'bg-accent-50/50' },
-  { title: 'Low performance alert for Grade 3', time: '2 hours ago', borderColor: 'border-l-[#ea580c]', bgColor: 'bg-[#fed7aa]/30' },
-  { title: 'New badge unlocked by 8 students', time: '3 hours ago', borderColor: 'border-l-accent-500', bgColor: 'bg-accent-50/50' },
-];
-
-const upcomingActivities = [
-  { title: 'Math Quiz - Multiplication', grade: 'Grade 3', dueDate: 'Due: Tomorrow', status: 'SCHEDULED', statusColor: 'bg-accent-500 text-white' },
-  { title: 'Science Adventure - Plants', grade: 'Grade 4', dueDate: 'Due: May 8', status: 'DRAFT', statusColor: 'bg-primary-300 text-primary-800' },
-  { title: 'English Puzzle - Vocabulary', grade: 'Grade 3', dueDate: 'Due: May 10', status: 'SCHEDULED', statusColor: 'bg-accent-500 text-white' },
-];
+const defaultRecentActivity: DashboardItem[] = [];
+const defaultNotifications: NotificationItem[] = [];
+const defaultUpcomingActivities: UpcomingActivityItem[] = [];
 
 function Icon({ type, className = "h-5 w-5" }: { type: string; className?: string }) {
   switch (type) {
@@ -48,6 +68,36 @@ function Icon({ type, className = "h-5 w-5" }: { type: string; className?: strin
 }
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStat[]>(defaultStats);
+  const [recentActivity, setRecentActivity] = useState<DashboardItem[]>(defaultRecentActivity);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(defaultNotifications);
+  const [upcomingActivities, setUpcomingActivities] = useState<UpcomingActivityItem[]>(defaultUpcomingActivities);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        const response = await fetch('/api/teacher/dashboard');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Unable to load dashboard data');
+        }
+
+        setStats(data.stats ?? defaultStats);
+        setRecentActivity(data.recentActivity ?? defaultRecentActivity);
+        setNotifications(data.notifications ?? defaultNotifications);
+        setUpcomingActivities(data.upcomingActivities ?? defaultUpcomingActivities);
+      } catch (error) {
+        console.error('Dashboard fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboardData();
+  }, []);
+
   return (
     <div className="max-w-[1400px]">
       {/* Header */}
@@ -63,24 +113,28 @@ export default function DashboardPage() {
 
       {/* Stats cards */}
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-        {stats.map((stat, idx) => (
-          <div 
-            key={stat.label} 
-            className="bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.02] animate-fadeInUp"
-            style={{ animationDelay: `${(idx + 1) * 100}ms` }}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.iconColor}`}>
-                <Icon type={stat.icon} className={`h-6 w-6 ${stat.iconTextColor}`} />
+        {loading ? (
+          <div className="col-span-full text-sm text-foreground-500 font-body">Loading dashboard data...</div>
+        ) : (
+          stats.map((stat, idx) => (
+            <div 
+              key={stat.label} 
+              className="bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.02] animate-fadeInUp"
+              style={{ animationDelay: `${(idx + 1) * 100}ms` }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.iconColor}`}>
+                  <Icon type={stat.icon} className={`h-6 w-6 ${stat.iconTextColor}`} />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-accent-100 text-accent-700 text-xs font-bold font-body whitespace-nowrap">
+                  {stat.delta}
+                </span>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-accent-100 text-accent-700 text-xs font-bold font-body whitespace-nowrap">
-                {stat.delta}
-              </span>
+              <div className="text-5xl font-bold text-foreground-900 font-heading mb-2">{stat.value}</div>
+              <div className="text-sm text-foreground-600 font-body">{stat.label}</div>
             </div>
-            <div className="text-5xl font-bold text-foreground-900 font-heading mb-2">{stat.value}</div>
-            <div className="text-sm text-foreground-600 font-body">{stat.label}</div>
-          </div>
-        ))}
+          ))
+        )}
       </section>
 
       {/* Two-column section */}
@@ -95,25 +149,29 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-heading font-bold text-foreground-900">Recent Student Activity</h2>
           </div>
           <div className="space-y-3 mb-5">
-            {recentActivity.map((activity, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-background-100/50 hover:bg-background-200/50 transition-colors duration-200">
-                <div className="flex items-center gap-3">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-full ${activity.color} font-bold text-foreground-800 font-heading text-lg`}>
-                    {activity.initials}
+            {!loading && recentActivity.length === 0 ? (
+              <div className="text-sm text-foreground-500 font-body">No recent activity found.</div>
+            ) : (
+              recentActivity.map((activity, idx) => (
+                <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-background-100/50 hover:bg-background-200/50 transition-colors duration-200">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-full ${activity.color} font-bold text-foreground-800 font-heading text-lg`}>
+                      {activity.initials}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-foreground-900 font-body">{activity.name}</div>
+                      <div className="text-sm text-foreground-600 font-body">{activity.action}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-foreground-900 font-body">{activity.name}</div>
-                    <div className="text-sm text-foreground-600 font-body">{activity.action}</div>
+                  <div className="text-right">
+                    {activity.score && (
+                      <div className="font-bold text-foreground-900 font-heading mb-0.5">{activity.score}</div>
+                    )}
+                    <div className="text-xs text-foreground-500 font-body whitespace-nowrap">{activity.time}</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  {activity.score && (
-                    <div className="font-bold text-foreground-900 font-heading mb-0.5">{activity.score}</div>
-                  )}
-                  <div className="text-xs text-foreground-500 font-body whitespace-nowrap">{activity.time}</div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <button className="w-full py-3.5 bg-accent-500 text-white font-bold rounded-2xl transition-all duration-300 hover:bg-accent-600 font-body whitespace-nowrap">
             View Full Analytics
@@ -130,15 +188,19 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-heading font-bold text-foreground-900">Notifications</h2>
           </div>
           <div className="space-y-3">
-            {notifications.map((notification, idx) => (
-              <div 
-                key={idx} 
-                className={`p-4 rounded-xl ${notification.bgColor} border-l-4 ${notification.borderColor} hover:shadow-sm transition-shadow`}
-              >
-                <div className="font-semibold text-foreground-900 text-sm font-body leading-relaxed mb-1">{notification.title}</div>
-                <div className="text-xs text-foreground-500 font-body">{notification.time}</div>
-              </div>
-            ))}
+            {!loading && notifications.length === 0 ? (
+              <div className="text-sm text-foreground-500 font-body">No notifications.</div>
+            ) : (
+              notifications.map((notification, idx) => (
+                <div 
+                  key={idx} 
+                  className={`p-4 rounded-xl ${notification.bgColor} border-l-4 ${notification.borderColor} hover:shadow-sm transition-shadow`}
+                >
+                  <div className="font-semibold text-foreground-900 text-sm font-body leading-relaxed mb-1">{notification.title}</div>
+                  <div className="text-xs text-foreground-500 font-body">{notification.time}</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -153,24 +215,28 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-heading font-bold text-foreground-900">Upcoming Activities</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {upcomingActivities.map((activity, idx) => (
-            <div 
-              key={idx} 
-              className="bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${activity.statusColor} font-body whitespace-nowrap`}>
-                  {activity.status}
-                </span>
+          {!loading && upcomingActivities.length === 0 ? (
+            <div className="text-sm text-foreground-500 font-body">No upcoming activities.</div>
+          ) : (
+            upcomingActivities.map((activity, idx) => (
+              <div 
+                key={idx} 
+                className="bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${activity.statusColor} font-body whitespace-nowrap`}>
+                    {activity.status}
+                  </span>
+                </div>
+                <h3 className="font-bold text-foreground-900 text-lg mb-2 font-heading leading-snug">{activity.title}</h3>
+                <p className="text-sm text-foreground-600 mb-1 font-body">{activity.grade}</p>
+                <p className="text-xs text-foreground-500 font-body flex items-center gap-1.5">
+                  <Icon type="calendar" className="h-3.5 w-3.5" />
+                  {activity.dueDate}
+                </p>
               </div>
-              <h3 className="font-bold text-foreground-900 text-lg mb-2 font-heading leading-snug">{activity.title}</h3>
-              <p className="text-sm text-foreground-600 mb-1 font-body">{activity.grade}</p>
-              <p className="text-xs text-foreground-500 font-body flex items-center gap-1.5">
-                <Icon type="calendar" className="h-3.5 w-3.5" />
-                {activity.dueDate}
-              </p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 

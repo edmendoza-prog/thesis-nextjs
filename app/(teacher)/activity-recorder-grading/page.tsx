@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
-const initialStudents = [
-  { id: 101, name: 'Ava Carter', emoji: '🦊', quiz1: 42, quiz2: 45, activity: 34, exam: 88 },
-  { id: 102, name: 'Leo Martin', emoji: '🦁', quiz1: 36, quiz2: 38, activity: 30, exam: 72 },
-  { id: 103, name: 'Mila Patel', emoji: '🐸', quiz1: 44, quiz2: 40, activity: 35, exam: 90 },
-  { id: 104, name: 'Noah Kim', emoji: '🐼', quiz1: 30, quiz2: 28, activity: 26, exam: 65 },
-];
+type StudentScore = {
+  id: number;
+  name: string;
+  emoji: string;
+  quiz1: number;
+  quiz2: number;
+  activity: number;
+  exam: number;
+};
 
 function Icon({ type, className = "h-5 w-5" }: { type: string; className?: string }) {
   switch (type) {
@@ -27,8 +30,26 @@ function Icon({ type, className = "h-5 w-5" }: { type: string; className?: strin
 }
 
 export default function ActivityRecorderGradingPage() {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState<StudentScore[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadScores() {
+      try {
+        const response = await fetch('/api/teacher/activity-recorder-grading');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to load grading data');
+        setStudents(data.students ?? []);
+      } catch (error) {
+        console.error('Grading fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadScores();
+  }, []);
 
   const stats = useMemo(() => {
     const withScores = students.map(s => {
@@ -50,7 +71,7 @@ export default function ActivityRecorderGradingPage() {
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const updateScore = (id: number, field: keyof typeof initialStudents[0], value: string) => {
+  const updateScore = (id: number, field: keyof StudentScore, value: string) => {
     const numValue = parseInt(value) || 0;
     setStudents(prev => prev.map(s => s.id === id ? { ...s, [field]: numValue } : s));
   };
@@ -124,6 +145,9 @@ export default function ActivityRecorderGradingPage() {
       <section className="bg-background-50 rounded-2xl border border-background-200/70 p-6 animate-fadeInUp" style={{ animationDelay: '350ms' }}>
         <h2 className="font-heading font-bold text-2xl text-foreground-900 mb-5">Score Recording Sheet</h2>
         
+        {loading ? (
+          <div className="text-sm text-foreground-500 font-body">Loading scores...</div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -218,6 +242,7 @@ export default function ActivityRecorderGradingPage() {
             </tbody>
           </table>
         </div>
+        )}
 
         {/* Grading Legend */}
         <div className="mt-6 flex items-center justify-center gap-6 text-sm font-body">
