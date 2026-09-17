@@ -1,4 +1,7 @@
 import mysql from 'mysql2/promise';
+import { config } from 'dotenv';
+
+config();
 
 // Create a connection pool for better performance
 const pool = mysql.createPool({

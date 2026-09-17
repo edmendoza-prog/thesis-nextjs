@@ -68,11 +68,11 @@ CREATE TABLE IF NOT EXISTS activities (
   activity_type ENUM('quiz', 'game', 'assignment', 'exam') NOT NULL,
   total_points INT DEFAULT 100,
   due_date DATETIME,
-  created_by INT,
+  created_by_user_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
-  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_class_id (class_id),
   INDEX idx_due_date (due_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -119,18 +119,4 @@ CREATE TABLE IF NOT EXISTS student_badges (
   INDEX idx_student_id (student_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Insert sample data
-INSERT INTO users (email, name, user_type, password_hash) VALUES
-('teacher@school.com', 'John Teacher', 'teacher', '$2a$10$sample_hash_here'),
-('student1@school.com', 'Sarah Johnson', 'student', '$2a$10$sample_hash_here'),
-('student2@school.com', 'Mike Smith', 'student', '$2a$10$sample_hash_here');
-
-INSERT INTO classes (name, grade_level, section, teacher_id) VALUES
-('Grade 1 - Section A', 1, 'A', 1),
-('Grade 2 - Section A', 2, 'A', 1),
-('Grade 3 - Section A', 3, 'A', 1);
-
-INSERT INTO badges (name, description, icon) VALUES
-('Math Master', 'Complete 10 math activities with 90%+ score', '🏆'),
-('Speed Demon', 'Complete 5 activities in record time', '⚡'),
-('Perfect Score', 'Achieve 100% on any activity', '🌟');
+-- No seed data is included. Runtime data is created through the application flow.

@@ -2,89 +2,10 @@
 
 import Link from 'next/link';
 
-const stats = [
-  {
-    label: 'Total Points',
-    value: '850',
-    icon: 'star',
-    badgeClasses: 'bg-[#fce7f3] text-[#ec4899]',
-    accent: 'text-[#111827]',
-  },
-  {
-    label: 'Avg Accuracy',
-    value: '89%',
-    icon: 'trend',
-    badgeClasses: 'bg-[#dcfce7] text-[#22c55e]',
-    accent: 'text-[#111827]',
-  },
-  {
-    label: 'Games Completed',
-    value: '93',
-    icon: 'target',
-    badgeClasses: 'bg-[#dbeafe] text-[#3b82f6]',
-    accent: 'text-[#111827]',
-  },
-  {
-    label: 'Time Spent',
-    value: '38h',
-    icon: 'clock',
-    badgeClasses: 'bg-[#ffedd5] text-[#f97316]',
-    accent: 'text-[#111827]',
-  },
-];
-
-const subjects = [
-  {
-    name: 'Math',
-    icon: '📐',
-    subtitle: '18 activities • 4h',
-    value: 92,
-    track: 'bg-[#e5e7eb]',
-    fill: 'bg-gradient-to-r from-[#22c55e] to-[#4ade80]',
-    badge: 'bg-[#dcfce7] text-[#16a34a]',
-  },
-  {
-    name: 'English',
-    icon: '📗',
-    subtitle: '15 activities • 3h',
-    value: 88,
-    track: 'bg-[#e5e7eb]',
-    fill: 'bg-gradient-to-r from-[#3b82f6] to-[#60a5fa]',
-    badge: 'bg-[#dbeafe] text-[#2563eb]',
-  },
-  {
-    name: 'Science',
-    icon: '🔬',
-    subtitle: '12 activities • 2h',
-    value: 76,
-    track: 'bg-[#e5e7eb]',
-    fill: 'bg-gradient-to-r from-[#f97316] to-[#fb7185]',
-    badge: 'bg-[#ffedd5] text-[#ea580c]',
-  },
-  {
-    name: 'Logic',
-    icon: '🧩',
-    subtitle: '10 activities • 2h',
-    value: 94,
-    track: 'bg-[#e5e7eb]',
-    fill: 'bg-gradient-to-r from-[#22c55e] to-[#34d399]',
-    badge: 'bg-[#dcfce7] text-[#16a34a]',
-  },
-];
-
-const badges = [
-  { name: 'Math Master', earned: true, date: 'Earned May 24, 2026', icon: '🏆', classes: 'border-[#fbbf24] bg-[#fef3c7] text-[#92400e]' },
-  { name: 'Speed Demon', earned: true, date: 'Earned May 18, 2026', icon: '🏆', classes: 'border-[#fbbf24] bg-[#fef3c7] text-[#92400e]' },
-  { name: 'Perfect Score', earned: true, date: 'Earned May 10, 2026', icon: '🏆', classes: 'border-[#fbbf24] bg-[#fef3c7] text-[#92400e]' },
-  { name: 'Weekly Champion', earned: false, date: 'Not earned yet', icon: '🔒', classes: 'border-[#d1d5db] bg-[#f3f4f6] text-[#6b7280]' },
-];
-
-const activities = [
-  { name: 'Quiz Adventure - Math', date: 'May 6, 2026 at 2:30 PM', score: 96, color: 'text-[#16a34a]' },
-  { name: 'Reading Sprint - English', date: 'May 5, 2026 at 1:15 PM', score: 88, color: 'text-[#2563eb]' },
-  { name: 'Lab Challenge - Science', date: 'May 4, 2026 at 11:45 AM', score: 82, color: 'text-[#2563eb]' },
-  { name: 'Puzzle Rush - Logic', date: 'May 3, 2026 at 9:10 AM', score: 94, color: 'text-[#16a34a]' },
-];
+const stats: Array<{ label: string; value: string; icon: string; badgeClasses: string; accent: string }> = [];
+const subjects: Array<{ name: string; icon: string; subtitle: string; value: number; track: string; fill: string; badge: string }> = [];
+const badges: Array<{ name: string; earned: boolean; date: string; icon: string; classes: string }> = [];
+const activities: Array<{ name: string; date: string; score: number; color: string }> = [];
 
 function Icon({ type, className = 'h-5 w-5' }: { type: string; className?: string }) {
   switch (type) {
@@ -176,7 +97,7 @@ function Icon({ type, className = 'h-5 w-5' }: { type: string; className?: strin
 export default function StudentAnalyticsPage() {
   return (
     <div className="min-h-screen bg-[linear-gradient(135deg,#38bdf8_0%,#3b82f6_38%,#818cf8_100%)] px-3 py-6 sm:px-5 lg:px-8">
-      <div className="mx-auto w-full max-w-[1180px]">
+      <div className="mx-auto w-full max-w-295">
         <header className="mb-6 flex items-center gap-3 text-white">
           <Link
             href="/dashboard"
@@ -192,7 +113,7 @@ export default function StudentAnalyticsPage() {
             </div>
             <div>
               <h1 className="text-[2.2rem] font-extrabold leading-none tracking-tight text-white sm:text-[2.6rem]">Student Analytics</h1>
-              <p className="mt-1 text-sm text-sky-100 sm:text-base">Sarah Johnson • Grade 3 - Morning</p>
+              <p className="mt-1 text-sm text-sky-100 sm:text-base">Student overview • Dynamic data</p>
             </div>
           </div>
         </header>
@@ -218,31 +139,37 @@ export default function StudentAnalyticsPage() {
               <h2 className="text-[1.8rem] font-extrabold text-[#1f2937]">Subject Performance</h2>
             </div>
 
-            <div className="space-y-5">
-              {subjects.map((subject) => (
-                <div key={subject.name}>
-                  <div className="mb-2 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg ${subject.badge}`}>
-                        {subject.icon}
+            {subjects.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-[#6b7280]">
+                Subject analytics will appear here when data is available.
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {subjects.map((subject) => (
+                  <div key={subject.name}>
+                    <div className="mb-2 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg ${subject.badge}`}>
+                          {subject.icon}
+                        </div>
+                        <div>
+                          <div className="text-base font-extrabold text-[#111827]">{subject.name}</div>
+                          <div className="text-xs text-[#6b7280]">{subject.subtitle}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-base font-extrabold text-[#111827]">{subject.name}</div>
-                        <div className="text-xs text-[#6b7280]">{subject.subtitle}</div>
-                      </div>
+                      <div className="text-[2rem] font-extrabold text-[#7c3aed]">{subject.value}%</div>
                     </div>
-                    <div className="text-[2rem] font-extrabold text-[#7c3aed]">{subject.value}%</div>
-                  </div>
 
-                  <div className={`h-2.5 w-full overflow-hidden rounded-full ${subject.track}`}>
-                    <div
-                      className={`h-full rounded-full ${subject.fill}`}
-                      style={{ width: `${subject.value}%` }}
-                    />
+                    <div className={`h-2.5 w-full overflow-hidden rounded-full ${subject.track}`}>
+                      <div
+                        className={`h-full rounded-full ${subject.fill}`}
+                        style={{ width: `${subject.value}%` }}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-[22px] bg-white p-5 shadow-[0_12px_24px_rgba(37,99,235,0.12)]">
@@ -253,24 +180,30 @@ export default function StudentAnalyticsPage() {
               <h2 className="text-[1.8rem] font-extrabold text-[#1f2937]">Earned Badges</h2>
             </div>
 
-            <div className="space-y-3">
-              {badges.map((badge) => (
-                <div
-                  key={badge.name}
-                  className={`flex items-center gap-3 rounded-xl border p-3 ${badge.classes}`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/60 text-xl">
-                    {badge.earned ? '🏆' : '🔒'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-extrabold text-[#111827]">{badge.name}</div>
-                    <div className="text-[11px] text-[#6b7280]">
-                      {badge.earned ? badge.date : 'Not earned yet'}
+            {badges.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-[#6b7280]">
+                Badge data will appear here when earned.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {badges.map((badge) => (
+                  <div
+                    key={badge.name}
+                    className={`flex items-center gap-3 rounded-xl border p-3 ${badge.classes}`}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/60 text-xl">
+                      {badge.earned ? '🏆' : '🔒'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-extrabold text-[#111827]">{badge.name}</div>
+                      <div className="text-[11px] text-[#6b7280]">
+                        {badge.earned ? badge.date : 'Not earned yet'}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -282,17 +215,23 @@ export default function StudentAnalyticsPage() {
             <h2 className="text-[1.8rem] font-extrabold text-[#1f2937]">Recent Activities</h2>
           </div>
 
-          <div className="space-y-3">
-            {activities.map((item) => (
-              <div key={item.name} className="flex items-center justify-between gap-4 rounded-xl bg-[#f3f4f6] px-4 py-3">
-                <div>
-                  <div className="text-base font-extrabold text-[#111827]">{item.name}</div>
-                  <div className="text-xs text-[#6b7280]">{item.date}</div>
+          {activities.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-[#6b7280]">
+              No recent activity to display yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {activities.map((item) => (
+                <div key={item.name} className="flex items-center justify-between gap-4 rounded-xl bg-[#f3f4f6] px-4 py-3">
+                  <div>
+                    <div className="text-base font-extrabold text-[#111827]">{item.name}</div>
+                    <div className="text-xs text-[#6b7280]">{item.date}</div>
+                  </div>
+                  <div className={`text-lg font-extrabold ${item.color}`}>{item.score}%</div>
                 </div>
-                <div className={`text-lg font-extrabold ${item.color}`}>{item.score}%</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

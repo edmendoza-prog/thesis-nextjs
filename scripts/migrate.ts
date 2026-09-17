@@ -174,7 +174,10 @@ async function migrate() {
     console.log(`  Executed: ${successCount} migration(s)\n`);
 
   } catch (error: any) {
-    console.error(`\n${colors.red}✗ Migration failed:${colors.reset} ${error.message}\n`);
+    const details = error.errors?.length
+      ? error.errors.map((cause: any) => `${cause.code || 'ERROR'}: ${cause.message}`).join('; ')
+      : error.message || String(error);
+    console.error(`\n${colors.red}✗ Migration failed:${colors.reset} ${details}\n`);
     process.exit(1);
   } finally {
     await pool.end();

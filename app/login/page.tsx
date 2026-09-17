@@ -25,7 +25,7 @@ export default function LoginPage() {
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -38,13 +38,55 @@ export default function LoginPage() {
         setError('Password must be at least 6 characters long.');
         return;
       }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+            role,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          setError(data.error || 'Unable to create account');
+          return;
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to create account');
+        return;
+      }
     }
 
-    // Redirect to appropriate dashboard
-    if (role === 'teacher') {
-      router.push('/dashboard');
-    } else {
-      router.push('/student-dashboard');
+    try {
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          role,
+        }),
+      });
+
+      const loginData = await loginResponse.json();
+      if (!loginResponse.ok) {
+        setError(loginData.error || 'Unable to log in');
+        return;
+      }
+
+      // Redirect to appropriate dashboard
+      if (role === 'teacher') {
+        router.push('/dashboard');
+      } else {
+        router.push('/student-dashboard');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to log in');
     }
   };
 
@@ -58,30 +100,26 @@ export default function LoginPage() {
       {/* Left Panel - Hidden on mobile */}
       <div className="hidden lg:flex lg:w-[45%] bg-primary-500 relative overflow-hidden flex-col p-12">
         {/* Decorative circles */}
-        <div 
-          className={`absolute top-20 right-10 w-64 h-64 bg-white/10 rounded-full transition-all duration-700 ease-out ${
-            mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-          }`}
+        <div
+          className={`absolute top-20 right-10 w-64 h-64 bg-white/10 rounded-full transition-all duration-700 ease-out ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+            }`}
           style={{ transitionDelay: '300ms' }}
         ></div>
-        <div 
-          className={`absolute -bottom-20 -left-20 w-96 h-96 bg-white/5 rounded-full transition-all duration-700 ease-out ${
-            mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-          }`}
+        <div
+          className={`absolute -bottom-20 -left-20 w-96 h-96 bg-white/5 rounded-full transition-all duration-700 ease-out ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+            }`}
           style={{ transitionDelay: '500ms' }}
         ></div>
-        <div 
-          className={`absolute top-1/2 -right-32 w-[500px] h-[500px] bg-white/5 rounded-full transition-all duration-700 ease-out ${
-            mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-          }`}
+        <div
+          className={`absolute top-1/2 -right-32 w-[500px] h-[500px] bg-white/5 rounded-full transition-all duration-700 ease-out ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+            }`}
           style={{ transitionDelay: '700ms' }}
         ></div>
 
         {/* Logo */}
-        <div 
-          className={`flex items-center gap-3 mb-auto transition-all duration-700 ease-out ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-          }`}
+        <div
+          className={`flex items-center gap-3 mb-auto transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+            }`}
           style={{ transitionDelay: '100ms' }}
         >
           <div className="w-10 h-10 bg-accent-500 rounded-lg flex items-center justify-center">
@@ -96,32 +134,29 @@ export default function LoginPage() {
 
         {/* Content */}
         <div className="relative z-10 my-auto">
-          <h1 
-            className={`text-4xl font-bold text-white mb-6 transition-all duration-700 ease-out ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
+          <h1
+            className={`text-4xl font-bold text-white mb-6 transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
             style={{ fontFamily: 'var(--font-heading)', transitionDelay: '200ms' }}
           >
             Learning that feels like playtime!
           </h1>
-          <p 
-            className={`text-white/75 text-lg leading-relaxed mb-8 transition-all duration-700 ease-out ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
+          <p
+            className={`text-white/75 text-lg leading-relaxed mb-8 transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
             style={{ transitionDelay: '300ms' }}
           >
             Earn points, collect badges, and climb the leaderboard while mastering Grade 1 to 3 lessons at Go Learning.
           </p>
-          
+
           {/* Classroom image placeholder */}
-          <div 
-            className={`rounded-2xl border-2 border-white/20 overflow-hidden transition-all duration-700 ease-out ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+          <div
+            className={`rounded-2xl border-2 border-white/20 overflow-hidden transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
             style={{ transitionDelay: '500ms' }}
           >
-            <img 
-              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop" 
+            <img
+              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop"
               alt="Happy elementary students in classroom"
               className="w-full h-64 object-cover"
             />
@@ -129,10 +164,9 @@ export default function LoginPage() {
         </div>
 
         {/* Copyright */}
-        <p 
-          className={`text-white/45 text-sm mt-auto transition-opacity duration-700 ease-out ${
-            mounted ? 'opacity-100' : 'opacity-0'
-          }`}
+        <p
+          className={`text-white/45 text-sm mt-auto transition-opacity duration-700 ease-out ${mounted ? 'opacity-100' : 'opacity-0'
+            }`}
           style={{ transitionDelay: '700ms' }}
         >
           © 2026 Go Learning. All rights reserved.
@@ -140,10 +174,9 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel */}
-      <div 
-        className={`flex-1 bg-background-50 flex items-center justify-center p-6 lg:p-12 transition-opacity duration-700 ease-out ${
-          mounted ? 'opacity-100' : 'opacity-0'
-        }`}
+      <div
+        className={`flex-1 bg-background-50 flex items-center justify-center p-6 lg:p-12 transition-opacity duration-700 ease-out ${mounted ? 'opacity-100' : 'opacity-0'
+          }`}
         style={{ transitionDelay: '200ms' }}
       >
         {/* Mobile logo */}
@@ -160,17 +193,17 @@ export default function LoginPage() {
 
         {/* Sliding container */}
         <div className="w-full max-w-md overflow-hidden">
-          <div 
+          <div
             className="flex w-[200%] transition-transform duration-500 ease-out"
-            style={{ 
+            style={{
               transform: mode === 'signup' ? 'translateX(0%)' : 'translateX(-50%)',
               transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
             {/* Sign Up Form */}
             <div className="w-1/2 px-2">
-              <h2 
-                className="text-3xl font-bold text-foreground-900 mb-2" 
+              <h2
+                className="text-3xl font-bold text-foreground-900 mb-2"
                 style={{ fontFamily: 'var(--font-heading)' }}
               >
                 Create your account
@@ -195,11 +228,10 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setRole('student')}
-                      className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all flex items-center justify-center gap-2 ${
-                        role === 'student'
+                      className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all flex items-center justify-center gap-2 ${role === 'student'
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-background-200 text-foreground-500 hover:border-background-300'
-                      }`}
+                        }`}
                     >
                       <i className="ri-user-3-line text-xl"></i>
                       Student
@@ -207,11 +239,10 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setRole('teacher')}
-                      className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all flex items-center justify-center gap-2 ${
-                        role === 'teacher'
+                      className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all flex items-center justify-center gap-2 ${role === 'teacher'
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-background-200 text-foreground-500 hover:border-background-300'
-                      }`}
+                        }`}
                     >
                       <i className="ri-award-line text-xl"></i>
                       Teacher
@@ -338,8 +369,8 @@ export default function LoginPage() {
 
             {/* Login Form */}
             <div className="w-1/2 px-2">
-              <h2 
-                className="text-3xl font-bold text-foreground-900 mb-2" 
+              <h2
+                className="text-3xl font-bold text-foreground-900 mb-2"
                 style={{ fontFamily: 'var(--font-heading)' }}
               >
                 Welcome back!

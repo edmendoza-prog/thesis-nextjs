@@ -1,39 +1,67 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const navItems = [
-  { label: 'Dashboard', icon: 'home', bg: 'bg-primary-500 hover:bg-primary-600', href: '/dashboard' },
-  { label: 'Create Activity', icon: 'plus', bg: 'bg-accent-500 hover:bg-accent-600', href: '/create-activity' },
-  { label: 'Grades', icon: 'layers', bg: 'bg-secondary-400 hover:bg-secondary-500', href: '/grades' },
-  { label: 'Enroll Students', icon: 'users', bg: 'bg-[#4f46e5] hover:bg-[#4338ca]', href: '/student-enrollment' },
-  { label: 'Attendance', icon: 'check', bg: 'bg-accent-700 hover:bg-accent-800', href: '/attendance-management' },
-  { label: 'Recorder', icon: 'mic', bg: 'bg-[#ef4444] hover:bg-[#dc2626]', href: '/activity-recorder-grading' },
-  { label: 'Live Games', icon: 'gamepad', bg: 'bg-[#f97316] hover:bg-[#ea580c]', href: '/live-class-activities' },
+  { label: 'Dashboard', icon: 'home', href: '/dashboard' },
+  { label: 'Library', icon: 'book', href: '/library' },
+  { label: 'Class Record', icon: 'folder', href: '/grades' },
+  { label: 'Live Games', icon: 'gamepad', href: '/live-class-activities' },
 ];
 
 function Icon({ type, className = "h-5 w-5" }: { type: string; className?: string }) {
   switch (type) {
     case 'home':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M9 22V12h6v10" /></svg>;
-    case 'plus':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 5v14M5 12h14" /></svg>;
-    case 'layers':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 3 3 8l9 5 9-5-9-5Z" /><path d="m3 12 9 5 9-5" /></svg>;
-    case 'users':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" /><circle cx="9.5" cy="7" r="3.5" /><path d="M22 19v-1a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
-    case 'check':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 6 9 17l-5-5" /></svg>;
-    case 'mic':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>;
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <path d="M9 22V12h6v10" />
+        </svg>
+      );
+    case 'book':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+      );
+    case 'folder':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l1.5 2H18.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />
+        </svg>
+      );
     case 'gamepad':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="6" x2="10" y1="11" y2="11" /><line x1="8" x2="8" y1="9" y2="13" /><line x1="15" x2="15.01" y1="12" y2="12" /><line x1="18" x2="18.01" y1="10" y2="10" /><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z" /></svg>;
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <line x1="6" x2="10" y1="11" y2="11" />
+          <line x1="8" x2="8" y1="9" y2="13" />
+          <line x1="15" x2="15.01" y1="12" y2="12" />
+          <line x1="18" x2="18.01" y1="10" y2="10" />
+          <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z" />
+        </svg>
+      );
     case 'school':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m4 6 8-4 8 4" /><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2" /><path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4" /><path d="M18 5v17" /><path d="M6 5v17" /><circle cx="12" cy="9" r="2" /></svg>;
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="m4 6 8-4 8 4" />
+          <path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2" />
+          <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4" />
+          <path d="M18 5v17" />
+          <path d="M6 5v17" />
+          <circle cx="12" cy="9" r="2" />
+        </svg>
+      );
     case 'logout':
-      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>;
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -41,80 +69,137 @@ function Icon({ type, className = "h-5 w-5" }: { type: string; className?: strin
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [teacherName, setTeacherName] = useState('Teacher');
+
+  useEffect(() => {
+    async function loadTeacherProfile() {
+      try {
+        const response = await fetch('/api/teacher/profile');
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+        const data = await response.json();
+        if (response.ok && data.profile?.name) {
+          setTeacherName(data.profile.name);
+        }
+      } catch {
+        // Fallback to default
+      }
+    }
+    loadTeacherProfile();
+  }, [router]);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
+    router.push('/login');
+  };
+
+  const initials = teacherName
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'T';
 
   return (
     <div className="flex min-h-screen bg-primary-100">
-      {/* Fixed Floating Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-primary-50 rounded-r-3xl border-r border-primary-200/50 z-50 flex flex-col shadow-sm">
+      {/* Fixed Floating Dark Indigo Sidebar */}
+      <aside className="fixed left-0 top-0 bottom-0 z-50 hidden w-64 flex-col rounded-r-3xl bg-[#1e173e] text-white shadow-xl lg:flex">
         {/* Logo & Brand */}
-        <div className="p-6 pb-4 animate-fadeInUp">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-primary-500 flex items-center justify-center">
-              <Icon type="school" className="h-6 w-6 text-white" />
+        <div className="p-6 pb-6 animate-fadeInUp">
+          <div className="mb-1.5 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#4f46e5] text-white shadow-md">
+              <Icon type="school" className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="font-heading font-bold text-lg text-foreground-900 leading-tight">
+              <h1 className="font-heading text-base font-bold leading-tight text-white">
                 Teacher Dashboard
               </h1>
             </div>
           </div>
-          <p className="text-sm text-foreground-600 ml-[52px]">Welcome back</p>
+          <p className="ml-[52px] text-xs font-medium text-[#a69fc4]">Welcome back</p>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 space-y-1.5 overflow-y-auto px-4">
           {navItems.map((item, idx) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              pathname === item.href ||
+              (item.href === '/library' && pathname.startsWith('/create-activity'));
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-2xl text-white font-body font-semibold text-sm
-                  transition-all duration-300 whitespace-nowrap
-                  ${item.bg}
-                  hover:opacity-90 hover:scale-[1.02]
-                  ${isActive ? 'ring-2 ring-primary-300 shadow-sm scale-[1.02]' : ''}
+                  flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold
+                  whitespace-nowrap transition-all duration-200
+                  ${
+                    isActive
+                      ? 'bg-[#fff8e7] text-[#1e173e] shadow-sm font-bold scale-[1.01]'
+                      : 'text-[#a69fc4] hover:bg-white/10 hover:text-white'
+                  }
                   animate-fadeInUp
                 `}
-                style={{ animationDelay: `${(idx + 1) * 100}ms` }}
+                style={{ animationDelay: `${(idx + 1) * 60}ms` }}
               >
-                <Icon type={item.icon} className="h-5 w-5" />
+                <Icon
+                  type={item.icon}
+                  className={`h-5 w-5 ${
+                    isActive
+                      ? 'text-[#1e173e]'
+                      : item.icon === 'home'
+                      ? 'text-emerald-400'
+                      : item.icon === 'book'
+                      ? 'text-amber-300'
+                      : item.icon === 'folder'
+                      ? 'text-purple-300'
+                      : 'text-orange-400'
+                  }`}
+                />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Divider */}
-        <div 
-          className="mx-4 border-t border-primary-200/50 animate-fadeInUp" 
-          style={{ animationDelay: '800ms' }}
-        />
-
         {/* User Info & Sign Out */}
-        <div 
-          className="p-4 space-y-3 animate-fadeInUp" 
-          style={{ animationDelay: '900ms' }}
-        >
-          <div className="flex items-center gap-3 px-3">
-            <div className="w-10 h-10 rounded-full bg-primary-300 flex items-center justify-center">
-              <span className="font-heading font-bold text-primary-800 text-lg">E</span>
-            </div>
-            <div>
-              <p className="font-body font-semibold text-sm text-foreground-900">Ed</p>
-              <p className="font-body text-xs text-foreground-600">Teacher</p>
-            </div>
+        <div className="border-t border-white/10 p-4 animate-fadeInUp" style={{ animationDelay: '300ms' }}>
+          <div className="flex items-center justify-between">
+            <Link
+              href="/profile"
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1.5 transition-colors hover:bg-white/10"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4f46e5] text-white shadow-inner font-heading text-sm font-bold">
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-white">{teacherName}</p>
+                <p className="text-xs text-[#a69fc4]">Teacher</p>
+              </div>
+            </Link>
+
+            <button
+              type="button"
+              onClick={handleSignOut}
+              title="Sign Out"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[#a69fc4] transition-colors duration-200 hover:bg-white/10 hover:text-white"
+            >
+              <Icon type="logout" className="h-4 w-4" />
+            </button>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 w-full rounded-xl text-foreground-700 hover:bg-primary-100 transition-colors duration-200 font-body text-sm">
-            <Icon type="logout" className="h-4 w-4" />
-            <span>Sign Out</span>
-          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="ml-64 flex-1 p-6 min-h-screen">
+      <main className="min-h-screen w-full p-4 lg:ml-64 lg:p-6">
         {children}
       </main>
     </div>

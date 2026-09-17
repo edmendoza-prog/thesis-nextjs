@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type DashboardStat = {
   label: string;
@@ -62,12 +64,17 @@ function Icon({ type, className = "h-5 w-5" }: { type: string; className?: strin
       return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>;
     case 'x':
       return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 6 6 18M6 6l12 12" /></svg>;
+    case 'plus':
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 5v14M5 12h14" /></svg>;
+    case 'arrow-right':
+      return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
     default:
       return null;
   }
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStat[]>(defaultStats);
   const [recentActivity, setRecentActivity] = useState<DashboardItem[]>(defaultRecentActivity);
   const [notifications, setNotifications] = useState<NotificationItem[]>(defaultNotifications);
@@ -78,10 +85,16 @@ export default function DashboardPage() {
     async function loadDashboardData() {
       try {
         const response = await fetch('/api/teacher/dashboard');
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Unable to load dashboard data');
+          console.warn('Dashboard fetch warning:', data.error || 'Unable to load dashboard data');
+          return;
         }
 
         setStats(data.stats ?? defaultStats);
@@ -96,66 +109,58 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
-  }, []);
+  }, [router]);
 
   return (
-    <div className="max-w-[1400px]">
-      {/* Header */}
-      <header className="mb-6 flex items-start justify-between animate-fadeInUp">
+    <div className="mx-auto max-w-[1280px]">
+      <header className="mb-7 flex flex-col gap-4 border-b border-primary-200/70 pb-6 animate-fadeInUp sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-4xl font-heading font-bold text-foreground-900 mb-2">Teacher Dashboard</h1>
-          <p className="text-foreground-600 font-body">Welcome back! Here&apos;s what&apos;s happening today</p>
+          <p className="mb-2 text-sm font-bold uppercase tracking-[0.14em] text-accent-700">Teacher workspace</p>
+          <h1 className="font-heading text-4xl font-bold text-foreground-900">Overview</h1>
+          <p className="mt-2 text-foreground-600">A quick view of your learners, activities, and classroom follow-ups.</p>
         </div>
-        <button className="w-10 h-10 rounded-full bg-foreground-800 text-white flex items-center justify-center hover:bg-foreground-900 transition-colors">
-          <Icon type="x" className="h-5 w-5" />
-        </button>
+        <Link href="/create-activity" className="flex items-center justify-center gap-2 rounded-lg bg-accent-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-accent-700"><Icon type="plus" className="h-5 w-5" />Create activity</Link>
       </header>
 
-      {/* Stats cards */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+      <section className="mb-6 grid overflow-hidden rounded-xl border border-primary-200 bg-background-50 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
         {loading ? (
-          <div className="col-span-full text-sm text-foreground-500 font-body">Loading dashboard data...</div>
+          <div className="col-span-full p-6 text-sm text-foreground-500 font-body">Loading dashboard data...</div>
         ) : (
           stats.map((stat, idx) => (
-            <div 
-              key={stat.label} 
-              className="bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.02] animate-fadeInUp"
+            <div
+              key={stat.label}
+              className="border-b border-primary-100 p-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 animate-fadeInUp"
               style={{ animationDelay: `${(idx + 1) * 100}ms` }}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.iconColor}`}>
-                  <Icon type={stat.icon} className={`h-6 w-6 ${stat.iconTextColor}`} />
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wide text-foreground-500">{stat.label}</p>
+                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.iconColor}`}>
+                  <Icon type={stat.icon} className={`h-5 w-5 ${stat.iconTextColor}`} />
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-accent-100 text-accent-700 text-xs font-bold font-body whitespace-nowrap">
-                  {stat.delta}
-                </span>
               </div>
-              <div className="text-5xl font-bold text-foreground-900 font-heading mb-2">{stat.value}</div>
-              <div className="text-sm text-foreground-600 font-body">{stat.label}</div>
+              <div className="mt-4 flex items-end gap-2"><span className="font-heading text-4xl font-bold text-foreground-900">{stat.value}</span><span className="mb-1 rounded-full bg-accent-50 px-2 py-0.5 text-xs font-bold text-accent-700">{stat.delta}</span></div>
             </div>
           ))
         )}
       </section>
 
-      {/* Two-column section */}
-      <section className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-        {/* Recent Activity (3/5) */}
-        <div 
-          className="lg:col-span-3 bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.01] animate-fadeInUp"
+      <section className="mb-6 grid gap-6 lg:grid-cols-[1.45fr_0.85fr]">
+        <div
+          className="overflow-hidden rounded-xl border border-primary-200 bg-background-50 shadow-sm animate-fadeInUp"
           style={{ animationDelay: '500ms' }}
         >
-          <div className="flex items-center gap-2 mb-5">
-            <Icon type="activity" className="h-6 w-6 text-foreground-700" />
-            <h2 className="text-2xl font-heading font-bold text-foreground-900">Recent Student Activity</h2>
+          <div className="flex items-center justify-between border-b border-primary-200 px-5 py-4">
+            <div><h2 className="font-heading text-2xl font-bold text-foreground-900">Learner activity</h2><p className="mt-1 text-sm text-foreground-500">Latest work submitted in your classes.</p></div>
+            <Link href="/student-analytics" className="hidden items-center gap-1 text-sm font-bold text-accent-700 hover:text-accent-800 sm:flex">Analytics <Icon type="arrow-right" className="h-4 w-4" /></Link>
           </div>
-          <div className="space-y-3 mb-5">
+          <div>
             {!loading && recentActivity.length === 0 ? (
-              <div className="text-sm text-foreground-500 font-body">No recent activity found.</div>
+              <div className="p-6 text-sm text-foreground-500 font-body">No recent activity found.</div>
             ) : (
               recentActivity.map((activity, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-background-100/50 hover:bg-background-200/50 transition-colors duration-200">
+                <div key={idx} className="flex items-center justify-between gap-4 border-b border-primary-100 px-5 py-4 last:border-b-0 hover:bg-accent-50">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-11 w-11 items-center justify-center rounded-full ${activity.color} font-bold text-foreground-800 font-heading text-lg`}>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${activity.color} font-bold text-foreground-800 font-heading text-sm`}>
                       {activity.initials}
                     </div>
                     <div>
@@ -164,37 +169,31 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    {activity.score && (
-                      <div className="font-bold text-foreground-900 font-heading mb-0.5">{activity.score}</div>
-                    )}
+                    {activity.score && <div className="font-heading font-bold text-accent-700">{activity.score}</div>}
                     <div className="text-xs text-foreground-500 font-body whitespace-nowrap">{activity.time}</div>
                   </div>
                 </div>
               ))
             )}
           </div>
-          <button className="w-full py-3.5 bg-accent-500 text-white font-bold rounded-2xl transition-all duration-300 hover:bg-accent-600 font-body whitespace-nowrap">
-            View Full Analytics
-          </button>
         </div>
 
-        {/* Notifications (2/5) */}
-        <div 
-          className="lg:col-span-2 bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.01] animate-fadeInUp"
+        <div
+          className="overflow-hidden rounded-xl border border-primary-200 bg-background-50 shadow-sm animate-fadeInUp"
           style={{ animationDelay: '600ms' }}
         >
-          <div className="flex items-center gap-2 mb-5">
-            <Icon type="bell" className="h-6 w-6 text-foreground-700" />
-            <h2 className="text-2xl font-heading font-bold text-foreground-900">Notifications</h2>
+          <div className="flex items-center gap-2 border-b border-primary-200 px-5 py-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fff1d2] text-[#d97706]"><Icon type="bell" className="h-5 w-5" /></span>
+            <div><h2 className="font-heading text-xl font-bold text-foreground-900">Needs your attention</h2><p className="text-sm text-foreground-500">Classroom updates</p></div>
           </div>
-          <div className="space-y-3">
+          <div>
             {!loading && notifications.length === 0 ? (
-              <div className="text-sm text-foreground-500 font-body">No notifications.</div>
+              <div className="p-6 text-sm text-foreground-500 font-body">No notifications.</div>
             ) : (
               notifications.map((notification, idx) => (
-                <div 
-                  key={idx} 
-                  className={`p-4 rounded-xl ${notification.bgColor} border-l-4 ${notification.borderColor} hover:shadow-sm transition-shadow`}
+                <div
+                  key={idx}
+                  className={`border-b border-primary-100 px-5 py-4 last:border-b-0 ${notification.bgColor} border-l-4 ${notification.borderColor}`}
                 >
                   <div className="font-semibold text-foreground-900 text-sm font-body leading-relaxed mb-1">{notification.title}</div>
                   <div className="text-xs text-foreground-500 font-body">{notification.time}</div>
@@ -205,35 +204,25 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Upcoming Activities */}
-      <section 
-        className="animate-fadeInUp"
+      <section
+        className="overflow-hidden rounded-xl border border-primary-200 bg-background-50 shadow-sm animate-fadeInUp"
         style={{ animationDelay: '700ms' }}
       >
-        <div className="flex items-center gap-2 mb-5">
-          <Icon type="calendar" className="h-6 w-6 text-foreground-700" />
-          <h2 className="text-2xl font-heading font-bold text-foreground-900">Upcoming Activities</h2>
+        <div className="flex items-center justify-between border-b border-primary-200 px-5 py-4">
+          <div><h2 className="font-heading text-2xl font-bold text-foreground-900">Upcoming activities</h2><p className="mt-1 text-sm text-foreground-500">Keep assessment dates visible.</p></div>
+          <Link href="/create-activity" className="hidden items-center gap-1 text-sm font-bold text-accent-700 hover:text-accent-800 sm:flex">Manage <Icon type="arrow-right" className="h-4 w-4" /></Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="divide-y divide-primary-100">
           {!loading && upcomingActivities.length === 0 ? (
-            <div className="text-sm text-foreground-500 font-body">No upcoming activities.</div>
+            <div className="p-6 text-sm text-foreground-500 font-body">No upcoming activities.</div>
           ) : (
             upcomingActivities.map((activity, idx) => (
-              <div 
-                key={idx} 
-                className="bg-background-50 rounded-2xl border border-background-200/70 p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-sm"
+              <div
+                key={idx}
+                className="flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-accent-50 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${activity.statusColor} font-body whitespace-nowrap`}>
-                    {activity.status}
-                  </span>
-                </div>
-                <h3 className="font-bold text-foreground-900 text-lg mb-2 font-heading leading-snug">{activity.title}</h3>
-                <p className="text-sm text-foreground-600 mb-1 font-body">{activity.grade}</p>
-                <p className="text-xs text-foreground-500 font-body flex items-center gap-1.5">
-                  <Icon type="calendar" className="h-3.5 w-3.5" />
-                  {activity.dueDate}
-                </p>
+                <div className="flex items-center gap-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-primary-700"><Icon type="calendar" className="h-5 w-5" /></span><div><h3 className="font-heading text-lg font-bold text-foreground-900">{activity.title}</h3><p className="mt-1 text-sm text-foreground-600">{activity.grade}</p></div></div>
+                <div className="flex items-center justify-between gap-4 sm:justify-end"><span className="text-sm font-semibold text-foreground-600">{activity.dueDate}</span><span className={`rounded-full px-3 py-1 text-xs font-bold ${activity.statusColor} whitespace-nowrap`}>{activity.status}</span></div>
               </div>
             ))
           )}
@@ -242,7 +231,7 @@ export default function DashboardPage() {
 
       {/* Footer */}
       <footer className="mt-12 text-center text-sm text-foreground-500 font-body animate-fadeInUp" style={{ animationDelay: '800ms' }}>
-        © 2026 Sacred Heart School of Butuan, Inc. All rights reserved.
+        © 2026 Learning Management System. All rights reserved.
       </footer>
     </div>
   );
