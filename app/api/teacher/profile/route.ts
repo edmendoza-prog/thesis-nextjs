@@ -3,12 +3,14 @@ import pool from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 type TeacherProfile = {
+  id?: number;
   name: string;
   email: string;
   employeeId: string;
   department: string;
   designation: string;
   bio: string;
+  avatarSeed?: string;
 };
 
 const emptyProfile: TeacherProfile = {
@@ -18,6 +20,7 @@ const emptyProfile: TeacherProfile = {
   department: '',
   designation: '',
   bio: '',
+  avatarSeed: '',
 };
 
 export async function GET() {
@@ -29,7 +32,7 @@ export async function GET() {
     const userId = user.id;
 
     const [rows] = await pool.query(`
-      SELECT u.id AS user_id, u.name, u.email, u.employee_id, u.department, u.designation, u.bio
+      SELECT u.id AS user_id, u.name, u.email, u.employee_id, u.department, u.designation, u.bio, u.avatar_seed
       FROM users u
       WHERE u.id = ? AND u.user_type = 'teacher'
       LIMIT 1
@@ -40,14 +43,18 @@ export async function GET() {
       return NextResponse.json({ profile: emptyProfile });
     }
 
+    const defaultSeed = teacher.avatar_seed || teacher.employee_id || String(teacher.user_id) || 'Teacher';
+
     return NextResponse.json({
       profile: {
+        id: teacher.user_id,
         name: teacher.name ?? '',
         email: teacher.email ?? '',
         employeeId: teacher.employee_id ?? '',
         department: teacher.department ?? '',
         designation: teacher.designation ?? '',
         bio: teacher.bio ?? '',
+        avatarSeed: defaultSeed,
       } satisfies TeacherProfile,
     });
   } catch (error) {
@@ -70,9 +77,12 @@ export async function POST(request: Request) {
 
     if (!name || !email) return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
 
+    const avatarSeed = body.avatarSeed !== undefined ? String(body.avatarSeed ?? '').trim() : null;
+
     await pool.query(
       `UPDATE users 
-       SET name = ?, email = ?, employee_id = ?, department = ?, designation = ?, bio = ?
+       SET name = ?, email = ?, employee_id = ?, department = ?, designation = ?, bio = ?,
+           avatar_seed = COALESCE(?, avatar_seed)
        WHERE id = ?`,
       [
         name,
@@ -81,13 +91,14 @@ export async function POST(request: Request) {
         String(body.department ?? '').trim(),
         String(body.designation ?? '').trim(),
         String(body.bio ?? '').trim(),
+        avatarSeed || null,
         userId
       ]
     );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, avatarSeed });
   } catch (error) {
     console.error('Teacher profile save error:', error);
     return NextResponse.json({ error: 'Unable to save teacher profile' }, { status: 500 });
   }
-}
+}

@@ -58,19 +58,29 @@ function parseActivityDescription(description?: string | null) {
   };
 }
 
-// Security: Strip out 'correct' and 'explanation' fields so students cannot cheat
-function sanitizeQuestionsForClient(questions: any[] = []) {
-  return questions.map((question) => {
-    const q = { ...question };
-    if (q.explanation) delete q.explanation;
-    if (Array.isArray(q.options)) {
-      q.options = q.options.map((opt: any) => {
-        const o = { ...opt };
-        delete o.correct;
-        return o;
-      });
-    }
-    return q;
+function extractAndNormalizeQuestions(rawList: any[]) {
+  const flattened = flattenQuestionGroups(rawList);
+  return flattened.map((q: any, index: number) => {
+    const qId = String(q?.id ?? `question-${index}`);
+    const options = Array.isArray(q?.options)
+      ? q.options.map((opt: any, oIdx: number) => ({
+          id: String(opt?.id ?? String.fromCharCode(65 + oIdx)),
+          text: String(opt?.text ?? opt?.value ?? ''),
+          correct: Boolean(opt?.correct === true || opt?.correct === 'true' || opt?.correct === 1 || opt?.correct === '1'),
+        }))
+      : [];
+
+    return {
+      ...q,
+      id: qId,
+      prompt: String(q?.prompt ?? 'Untitled Question'),
+      explanation: String(q?.explanation ?? ''),
+      expectedAnswer: q?.expectedAnswer ?? q?.answer ?? '',
+      pairs: Array.isArray(q?.pairs) ? q.pairs : [],
+      columnA: Array.isArray(q?.columnA) ? q.columnA : [],
+      columnB: Array.isArray(q?.columnB) ? q.columnB : [],
+      options,
+    };
   });
 }
 
@@ -152,7 +162,7 @@ export async function GET(request: Request) {
           title: activity.title || 'Untitled Activity',
           subject: parsed.subject,
           due: formatDueDate(activity.due_date),
-          questions: isCompleted ? parsed.generatedGroups : sanitizeQuestionsForClient(parsed.generatedGroups),
+          questions: extractAndNormalizeQuestions(parsed.generatedGroups),
           completed: isCompleted,
           answers: submittedAnswers,
           score: activity.submitted_score == null ? null : Number(activity.submitted_score),
@@ -189,7 +199,7 @@ export async function GET(request: Request) {
         color: palette.color,
         tint: palette.tint,
         text: palette.text,
-        questions: sanitizeQuestionsForClient(parsed.generatedGroups),
+        questions: extractAndNormalizeQuestions(parsed.generatedGroups),
         score: activity.submitted_score == null ? null : Number(activity.submitted_score),
         maxScore: activity.submitted_max_score == null ? null : Number(activity.submitted_max_score),
         completed: isCompleted,
@@ -197,7 +207,7 @@ export async function GET(request: Request) {
     });
 
     const [userRows] = await pool.query(
-      `SELECT id, name FROM users WHERE id = ? AND user_type = 'student' LIMIT 1`,
+      `SELECT id, name, student_number, avatar_seed, COALESCE(life_span, 100) AS life_span FROM users WHERE id = ? AND user_type = 'student' LIMIT 1`,
       [userId]
     );
     const studentUser = (userRows as any[])[0];
@@ -206,6 +216,14 @@ export async function GET(request: Request) {
       student: {
         id: userId,
         name: studentUser?.name || 'Student',
+        avatarSeed: studentUser?.avatar_seed || studentUser?.student_number || String(userId) || 'Student',
+        lifeSpan: Math.max(0, Math.min(100, Number(studentUser?.life_span ?? 100))),
+        hearts: Number(studentUser?.life_span ?? 100) <= 5
+          ? Math.max(1, Number(studentUser?.life_span || 5))
+          : Math.max(1, Math.min(5, Math.round(Number(studentUser?.life_span ?? 100) / 20))),
+        stars: Number(studentUser?.life_span ?? 100) <= 5
+          ? Math.max(1, Number(studentUser?.life_span || 5))
+          : Math.max(1, Math.min(5, Math.round(Number(studentUser?.life_span ?? 100) / 20))),
       },
       activities,
     });
@@ -243,36 +261,16 @@ export async function POST(request: Request) {
     }
 
     const parsed = parseActivityDescription(activity.description);
-    const rawGroups = parsed.generatedGroups;
-    const questions: any[] = [];
+    const questions = extractAndNormalizeQuestions(parsed.generatedGroups);
 
-    if (Array.isArray(rawGroups)) {
-      rawGroups.forEach((group: any, gIdx: number) => {
-        const groupQs = Array.isArray(group?.questions) ? group.questions : [group];
-        groupQs.forEach((q: any, qIdx: number) => {
-          if (!q || typeof q !== 'object') return;
-          const qId = String(q.id ?? `question-${gIdx}-${qIdx}`);
-          const options = Array.isArray(q.options)
-            ? q.options.map((opt: any, oIdx: number) => ({
-                id: String(opt?.id ?? String.fromCharCode(65 + oIdx)),
-                text: String(opt?.text ?? opt?.value ?? ''),
-                correct: Boolean(opt?.correct),
-              }))
-            : [];
-          questions.push({ ...q, id: qId, options });
-        });
-      });
-    }
+    const correctAnswers = questions.reduce((total, question, index) => {
+      const questionId = String(question?.id ?? `question-${index}`);
+      const correctOption = question.options?.find((option: any) => option?.correct);
+      const studentAnswer =
+        answers[questionId] ??
+        answers[String(index)] ??
+        answers[`question-${index}`];
 
-    if (questions.length > 0 && Object.keys(answers).length < questions.length) {
-      return NextResponse.json({ error: 'Answer every question before submitting' }, { status: 400 });
-    }
-
-    const answerValues = Object.values(answers) as string[];
-    const correctAnswers = questions.reduce((total, question) => {
-      const questionId = String(question?.id ?? '');
-      const correctOption = question.options.find((option: any) => option?.correct);
-      const studentAnswer = answers[questionId];
       return total + (correctOption && String(studentAnswer) === String(correctOption.id) ? 1 : 0);
     }, 0);
 
@@ -288,7 +286,8 @@ export async function POST(request: Request) {
       [userId, activityId, score, maxScore, JSON.stringify(answers)],
     );
 
-    return NextResponse.json({ score, maxScore, answered: answerValues.length, correct: correctAnswers });
+    const answeredCount = Object.keys(answers).length;
+    return NextResponse.json({ score, maxScore, answered: answeredCount, correct: correctAnswers });
   } catch (error) {
     console.error('Student activity submission error:', error);
     return NextResponse.json({ error: 'Unable to save assessment result' }, { status: 500 });

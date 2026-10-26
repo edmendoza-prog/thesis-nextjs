@@ -33,7 +33,8 @@ export async function GET(request: Request) {
     `, [userId]);
 
     const [studentRows] = await pool.query(`
-      SELECT se.class_id, u.id, u.name, COALESCE(u.student_number, u.email) AS student_number
+      SELECT se.class_id, u.id, u.name, COALESCE(u.student_number, u.email) AS student_number,
+             u.email, u.avatar_seed, u.created_at, COALESCE(u.life_span, 100) AS life_span
       FROM student_enrollments se
       JOIN classes c ON c.id = se.class_id
       JOIN users u ON u.id = se.student_id
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
     `, [userId]);
 
     const [availableStudentRows] = await pool.query(`
-      SELECT u.id, u.name, u.email
+      SELECT u.id, u.name, u.email, u.avatar_seed
       FROM users u
       WHERE u.user_type = 'student'
         AND u.id NOT IN (
@@ -77,6 +78,15 @@ export async function GET(request: Request) {
       WHERE c.teacher_id = ? AND a.deleted_at IS NULL
       ORDER BY a.due_date ASC, a.created_at ASC
     `, [userId]);
+
+    const [lessonCountRows] = await pool.query(`
+      SELECT class_id, COUNT(*) AS count
+      FROM lessons
+      WHERE is_visible = 1
+      GROUP BY class_id
+    `);
+    const lessonsByClass = new Map<number, number>();
+    (lessonCountRows as any[]).forEach((l) => lessonsByClass.set(Number(l.class_id), Number(l.count || 0)));
 
     const activitiesByClass = new Map<number, any[]>();
     (activityRows as any[]).forEach((activity) => {
@@ -153,12 +163,21 @@ export async function GET(request: Request) {
             id: Number(row.id),
             name: sectionName,
             activities: activitiesByClass.get(Number(row.id)) ?? [],
+            lessonCount: lessonsByClass.get(Number(row.id)) ?? 0,
+            homeworkCount: Number(row.activity_count ?? 0),
             studentList: classStudents.map((student) => {
               const percentage = scoreByStudent.get(`${row.id}:${student.id}`) ?? 0;
+              const lifeVal = Number(student.life_span ?? 100);
+              const hearts = lifeVal <= 5 ? Math.max(1, Math.min(5, Math.round(lifeVal))) : Math.max(1, Math.min(5, Math.round(lifeVal / 20)));
               return {
                 id: String(student.student_number),
                 userId: Number(student.id),
                 name: student.name,
+                email: student.email ? String(student.email) : '',
+                avatarSeed: student.avatar_seed || student.student_number || String(student.id) || 'Student',
+                createdAt: student.created_at ? new Date(student.created_at).toISOString() : undefined,
+                lifeSpan: lifeVal,
+                hearts,
                 percentage,
                 status: percentage >= 90 ? 'Excellent' : percentage >= 75 ? 'Good' : 'Needs Improvement',
                 attendance: dates.map((date) => {
@@ -181,6 +200,8 @@ export async function GET(request: Request) {
         id: String(student.id),
         userId: Number(student.id),
         name: student.name,
+        email: student.email ? String(student.email) : '',
+        avatarSeed: student.avatar_seed || String(student.id) || 'Student',
         percentage: 0,
         status: 'Needs Improvement',
         attendance: [],
@@ -254,6 +275,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid attendance status' }, { status: 400 });
     }
 
+    if (body?.action === 'bulk-save-attendance') {
+      const classId = Number(body.classId ?? 0);
+      const updates = Array.isArray(body.updates) ? body.updates : [];
+      if (!classId || updates.length === 0) {
+        return NextResponse.json({ error: 'Class ID and updates list required' }, { status: 400 });
+      }
+
+      for (const item of updates) {
+        const studentId = Number(item.studentId ?? 0);
+        const date = String(item.date ?? '').slice(0, 10);
+        const status = item.status;
+        if (studentId && date && ['present', 'absent', 'late', 'excused'].includes(status)) {
+          await pool.query(
+            `INSERT INTO attendance (class_id, student_id, date, status)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE status = VALUES(status), updated_at = CURRENT_TIMESTAMP`,
+            [classId, studentId, date, status]
+          );
+        }
+      }
+
+      return NextResponse.json({ success: true, count: updates.length });
+    }
+
     if (body?.action === 'remove-student' || body?.action === 'delete-student') {
       const classId = Number(body.classId ?? body.id ?? 0);
       const studentId = Number(body.studentId ?? body.userId ?? 0);
@@ -284,17 +329,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Student removed successfully' });
     }
 
-    if (body?.action === 'edit-class' || body?.action === 'update-class') {
+    if (body?.action === 'edit-class' || body?.action === 'update-class' || body?.action === 'update-class-name') {
+      const oldName = String(body.oldName ?? '').trim();
+      const newName = String(body.name ?? '').trim();
       const classId = Number(body.id ?? 0);
-      const name = String(body.name ?? '').trim();
-      if (!classId || !name) {
-        return NextResponse.json({ error: 'Class ID and valid name are required' }, { status: 400 });
+
+      if (!newName) {
+        return NextResponse.json({ error: 'Valid class name is required' }, { status: 400 });
       }
-      await pool.query(
-        'UPDATE classes SET name = ? WHERE id = ? AND teacher_id = ?',
-        [name, classId, userId]
-      );
-      return NextResponse.json({ success: true, message: 'Class updated successfully' });
+
+      const match = newName.match(/(\d+)/);
+      const gradeLevel = match ? parseInt(match[1], 10) : 1;
+
+      if (oldName) {
+        await pool.query(
+          'UPDATE classes SET name = ?, grade_level = ? WHERE name = ? AND teacher_id = ? AND deleted_at IS NULL',
+          [newName, gradeLevel, oldName, userId]
+        );
+      } else if (classId) {
+        await pool.query(
+          'UPDATE classes SET name = ?, grade_level = ? WHERE id = ? AND teacher_id = ? AND deleted_at IS NULL',
+          [newName, gradeLevel, classId, userId]
+        );
+      } else {
+        return NextResponse.json({ error: 'Class identifier is required' }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true, message: 'Class name updated successfully' });
     }
 
     if (body?.action === 'edit-section' || body?.action === 'update-section') {
@@ -303,6 +364,26 @@ export async function POST(request: Request) {
       if (!classId || !section) {
         return NextResponse.json({ error: 'Class ID and valid section name are required' }, { status: 400 });
       }
+
+      // Check current class name for this section
+      const [classLookup] = await pool.query(
+        'SELECT name FROM classes WHERE id = ? AND teacher_id = ? AND deleted_at IS NULL LIMIT 1',
+        [classId, userId]
+      );
+      const currentClass = (classLookup as any[])[0];
+      if (!currentClass) {
+        return NextResponse.json({ error: 'Section not found' }, { status: 404 });
+      }
+
+      // Check for duplicate section name in the same class
+      const [duplicateCheck] = await pool.query(
+        'SELECT id FROM classes WHERE name = ? AND section = ? AND id != ? AND teacher_id = ? AND deleted_at IS NULL LIMIT 1',
+        [currentClass.name, section, classId, userId]
+      );
+      if ((duplicateCheck as any[])[0]) {
+        return NextResponse.json({ error: `A section named "${section}" already exists in ${currentClass.name}.` }, { status: 400 });
+      }
+
       await pool.query(
         'UPDATE classes SET section = ? WHERE id = ? AND teacher_id = ?',
         [section, classId, userId]
@@ -323,7 +404,7 @@ export async function POST(request: Request) {
 
       if (!targetName && classId) {
         const [existingClass] = await pool.query(
-          'SELECT name, grade_level FROM classes WHERE id = ? AND teacher_id = ? LIMIT 1',
+          'SELECT name, grade_level FROM classes WHERE id = ? AND teacher_id = ? AND deleted_at IS NULL LIMIT 1',
           [classId, userId]
         );
         const baseClass = (existingClass as any[])[0];
@@ -335,7 +416,7 @@ export async function POST(request: Request) {
 
       if (targetName && !targetGradeLevel) {
         const [existingByName] = await pool.query(
-          'SELECT grade_level FROM classes WHERE name = ? AND teacher_id = ? LIMIT 1',
+          'SELECT grade_level FROM classes WHERE name = ? AND teacher_id = ? AND deleted_at IS NULL LIMIT 1',
           [targetName, userId]
         );
         if ((existingByName as any[])[0]) {
@@ -350,9 +431,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Class name or valid class ID is required' }, { status: 400 });
       }
 
+      // Check if section already exists in this class
+      const [duplicateCheck] = await pool.query(
+        'SELECT id FROM classes WHERE name = ? AND section = ? AND teacher_id = ? AND deleted_at IS NULL LIMIT 1',
+        [targetName, section, userId]
+      );
+      if ((duplicateCheck as any[])[0]) {
+        return NextResponse.json({ error: `Section "${section}" already exists in ${targetName}.` }, { status: 400 });
+      }
+
       const [insertResult] = await pool.query(
         'INSERT INTO classes (name, grade_level, section, teacher_id) VALUES (?, ?, ?, ?)',
-        [targetName, targetGradeLevel, section, userId]
+        [targetName, targetGradeLevel || 1, section, userId]
       );
       return NextResponse.json({
         success: true,
@@ -366,26 +456,13 @@ export async function POST(request: Request) {
       });
     }
 
-    if (body?.action === 'update-class-name') {
-      const oldName = String(body.oldName ?? '').trim();
-      const newName = String(body.name ?? '').trim();
-      if (!oldName || !newName) {
-        return NextResponse.json({ error: 'Old and new class names are required' }, { status: 400 });
-      }
-      await pool.query(
-        'UPDATE classes SET name = ? WHERE name = ? AND teacher_id = ?',
-        [newName, oldName, userId]
-      );
-      return NextResponse.json({ success: true, message: 'Class name updated successfully' });
-    }
-
     if (body?.action === 'delete-class-group') {
       const className = String(body.name ?? '').trim();
       if (!className) {
         return NextResponse.json({ error: 'Class name is required' }, { status: 400 });
       }
       await pool.query(
-        'DELETE FROM classes WHERE name = ? AND teacher_id = ?',
+        'UPDATE classes SET deleted_at = CURRENT_TIMESTAMP WHERE name = ? AND teacher_id = ?',
         [className, userId]
       );
       return NextResponse.json({ success: true, message: 'Class group deleted successfully' });
@@ -397,41 +474,36 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Class ID is required' }, { status: 400 });
       }
       await pool.query(
-        'DELETE FROM classes WHERE id = ? AND teacher_id = ?',
+        'UPDATE classes SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND teacher_id = ?',
         [classId, userId]
       );
       return NextResponse.json({ success: true, message: 'Class deleted successfully' });
     }
 
-    const { name, section } = body ?? {};
+    // Default / create-class action
+    const classNameStr = String(body?.name ?? '').trim();
+    let sectionStr = String(body?.section ?? '').trim() || 'Section A';
 
-    if (!name || !section) {
+    if (!classNameStr) {
       return NextResponse.json(
-        { error: 'Grade name and section are required' },
+        { error: 'Class name is required' },
         { status: 400 }
       );
     }
 
-    const classNameStr = String(name).trim();
-    let sectionStr = String(section).trim() || 'Section A';
     const match = classNameStr.match(/(\d+)/);
     const gradeLevel = match ? parseInt(match[1], 10) : 1;
 
-    // Check if section name already exists for this class name
-    const [existingSections] = await pool.query(
-      'SELECT section FROM classes WHERE name = ? AND teacher_id = ?',
-      [classNameStr, userId]
+    // Check if class with this name and section already exists
+    const [existing] = await pool.query(
+      'SELECT id FROM classes WHERE name = ? AND section = ? AND teacher_id = ? AND deleted_at IS NULL LIMIT 1',
+      [classNameStr, sectionStr, userId]
     );
-    const usedSections = new Set((existingSections as any[]).map((r) => String(r.section)));
-    if (usedSections.has(sectionStr)) {
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      for (let i = 0; i < letters.length; i++) {
-        const candidate = `Section ${letters[i]}`;
-        if (!usedSections.has(candidate)) {
-          sectionStr = candidate;
-          break;
-        }
-      }
+    if ((existing as any[])[0]) {
+      return NextResponse.json(
+        { error: `Class "${classNameStr}" with "${sectionStr}" already exists.` },
+        { status: 400 }
+      );
     }
 
     const [result] = await pool.query(
@@ -443,12 +515,12 @@ export async function POST(request: Request) {
       success: true,
       grade: {
         id: (result as any).insertId,
-        name: String(name).trim(),
-        section: String(section).trim(),
+        name: classNameStr,
+        section: sectionStr,
         students: 0,
         activities: 0,
       },
-      message: 'Grade created successfully',
+      message: 'Class created successfully',
     });
   } catch (error) {
     console.error('Error processing request:', error);
@@ -472,7 +544,7 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json({ error: 'Class ID is required' }, { status: 400 });
     }
-    await pool.query('DELETE FROM classes WHERE id = ? AND teacher_id = ?', [id, userId]);
+    await pool.query('UPDATE classes SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND teacher_id = ?', [id, userId]);
     return NextResponse.json({ success: true, message: 'Class deleted successfully' });
   } catch (error) {
     console.error('Error deleting class:', error);

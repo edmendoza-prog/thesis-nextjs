@@ -173,21 +173,29 @@ export async function POST(
         return NextResponse.json({ error: 'Selected class does not exist in the database.' }, { status: 400 });
       }
 
+      const criteria = Array.isArray(body?.criteria) ? body.criteria : [];
+      const allowLateSubmission = body?.allow_late_submission ?? true;
+      const scheduledStartDate = body?.scheduled_start_date ? new Date(body.scheduled_start_date) : null;
+      const rawDueDate = body?.due_date || body?.dueDate;
+      const parsedDueDate = rawDueDate ? new Date(rawDueDate) : null;
+      const finalDueDate = parsedDueDate && !isNaN(parsedDueDate.getTime()) ? parsedDueDate : null;
+
       const descriptionPayload = {
         subject,
         visibility,
         badge,
         activityType,
+        criteria,
         generatedGroups: generatedQuestions,
+        allowLateSubmission,
+        scheduledStartDate: scheduledStartDate && !isNaN(scheduledStartDate.getTime()) ? scheduledStartDate.toISOString() : null,
       };
 
-      const descriptionText = generatedQuestions.length > 0
-        ? JSON.stringify(descriptionPayload)
-        : `${subject}${visibility ? ` • ${visibility}` : ''}${badge ? ` • ${badge}` : ''}`;
+      const descriptionText = JSON.stringify(descriptionPayload);
 
       const [result] = await pool.query(
-        'INSERT INTO activities (title, description, class_id, activity_type, total_points, due_date, created_by_user_id) VALUES (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY), ?)',
-        [title, descriptionText, classId, activityType, totalPoints, userId]
+        'INSERT INTO activities (title, description, class_id, activity_type, total_points, due_date, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [title, descriptionText, classId, activityType, totalPoints, finalDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), userId]
       );
 
       return NextResponse.json({
@@ -244,7 +252,10 @@ export async function GET(
 
         const [rRows] = await pool.query(`
           SELECT 
+            u.id AS student_id,
             u.name AS student_name,
+            u.student_number,
+            u.avatar_seed,
             a.title AS activity_title,
             ROUND((s.score / s.max_score) * 100, 2) AS percentage,
             s.submitted_at AS time_graded
@@ -275,7 +286,11 @@ export async function GET(
         averageScore = Number((averageRows as any[])[0]?.value ?? 0);
       }
 
+      const [uRows] = await pool.query('SELECT name FROM users WHERE id = ? LIMIT 1', [userId]);
+      const teacherName = (uRows as any[])[0]?.name || 'Teacher';
+
       return NextResponse.json({
+        teacherName,
         stats: [
           { label: 'Total Students', value: String(totalStudents), delta: '+0', icon: 'users', iconColor: 'bg-accent-100', iconTextColor: 'text-accent-600' },
           { label: 'Active Activities', value: String(totalActivities), delta: '+0', icon: 'activity', iconColor: 'bg-secondary-100', iconTextColor: 'text-secondary-600' },
@@ -285,6 +300,7 @@ export async function GET(
         recentActivity: (recentRows as any[]).map((row, index) => ({
           name: row.student_name || `Student ${index + 1}`,
           initials: (row.student_name || 'S').split(' ').map((part: string) => part[0]).slice(0, 2).join('').toUpperCase(),
+          avatarSeed: row.avatar_seed || row.student_number || String(row.student_id || '') || row.student_name || 'Student',
           color: index % 2 === 0 ? 'bg-secondary-200' : 'bg-primary-200',
           action: row.activity_title ? `Completed ${row.activity_title}` : 'Recent classroom activity',
           score: row.percentage != null ? `${row.percentage}%` : '',

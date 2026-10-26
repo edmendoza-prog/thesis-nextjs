@@ -162,7 +162,7 @@ export default function EnrollStudentsPage() {
   return (
     <div className="mx-auto max-w-[1280px]">
       <header className="mb-7 flex flex-col gap-5 border-b border-primary-200/70 pb-6 animate-fadeInUp lg:flex-row lg:items-end lg:justify-between">
-        <div><p className="mb-2 text-sm font-bold uppercase tracking-[0.14em] text-accent-700">Teacher workspace</p><h1 className="font-heading text-4xl font-bold text-foreground-900">Student enrollment</h1><p className="mt-2 text-foreground-600">Build and maintain the class roster.</p></div>
+        <div><p className="mb-2 text-sm font-bold uppercase tracking-[0.14em] text-accent-700">Teacher workspace</p><h1 className="font-heading text-4xl font-bold text-foreground-900">Student enrollment</h1></div>
         <div className="flex items-center gap-3">
           <label className="rounded-xl border border-primary-200 bg-background-50 px-3 py-2 shadow-sm"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-foreground-500">Active class</span><select value={selectedClassId || ''} onChange={(event) => { setSelectedClassId(Number(event.target.value)); setSelectedStudentIds([]); }} className="min-w-56 bg-transparent text-sm font-bold text-foreground-900 outline-none">{classes.length === 0 ? <option value="">No classes available</option> : classes.map((classItem) => <option key={classItem.id} value={classItem.id}>{classItem.name}</option>)}</select></label>
           <button type="button" onClick={() => setShowAddClassModal(true)} className="flex items-center gap-2 rounded-xl bg-accent-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-accent-700 shadow-sm">

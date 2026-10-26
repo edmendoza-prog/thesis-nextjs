@@ -146,39 +146,7 @@ export async function GET() {
       });
     });
 
-    // 5. Active Live Game Sessions for Enrolled Classes
-    const [liveGameRows] = await pool.query(
-      `SELECT 
-        lg.id,
-        lg.session_name,
-        lg.status,
-        lg.created_at,
-        c.name AS class_name,
-        c.section AS class_section,
-        COALESCE(teacher.name, 'Teacher') AS teacher_name
-      FROM live_games lg
-      JOIN student_enrollments se ON se.class_id = lg.class_id
-      JOIN classes c ON c.id = lg.class_id
-      LEFT JOIN users teacher ON teacher.id = c.teacher_id
-      WHERE se.student_id = ? AND se.status = 'active' AND lg.status = 'active'`,
-      [userId]
-    );
 
-    (liveGameRows as any[]).forEach((row) => {
-      const key = `live-game-${row.id}`;
-      notifications.push({
-        key,
-        type: 'live_game',
-        title: `Live Session Active: ${row.session_name}`,
-        message: `Teacher ${row.teacher_name} started a live interactive session "${row.session_name}" for ${row.class_name}.`,
-        className: row.class_name,
-        classSection: row.class_section,
-        teacherName: row.teacher_name,
-        createdAt: new Date(row.created_at).toISOString(),
-        isRead: readKeys.has(key),
-        link: `/student-dashboard?tab=Live+Games`,
-      });
-    });
 
     // 6. Recent Attendance Records
     const [attendanceRows] = await pool.query(

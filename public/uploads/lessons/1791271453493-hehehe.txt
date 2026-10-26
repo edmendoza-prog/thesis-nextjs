@@ -1,0 +1,61 @@
+Redesign Implementation: Student Portal Mascot Reminder (sidebar)
+
+Keep the current Go Learning brand: dark navy sidebar, indigo accent, Plus Jakarta Sans, rounded cards, light and dark mode. Attach these assets with this prompt: the 10 mascot images (reminder_01 to reminder_10.png) and the speech bubble image (thots_clouds.jpg).
+
+1. PLACEMENT
+- Put the mascot in the sidebar, in the empty space above the streak card (bottom of the sidebar).
+- The mascot stands under a speech bubble. The bubble tail points down-left toward the mascot's head.
+- Tapping the mascot hides or shows the bubble.
+- On phones the sidebar becomes a top row, so show the mascot smaller (about 60px) with the bubble under the logo and menu.
+
+2. SPEECH BUBBLE (use the uploaded bubble image)
+- Remove the white background from the image so it is transparent. Use it as the background of the message box, stretched to fit.
+- Make 3 color versions of the bubble: white (welcome and tips), light red (overdue), light yellow (exam).
+- The message text must always fit inside the white area, above the tail:
+  - Start at 13px and shrink in steps to a minimum of about 10.5px.
+  - If it still does not fit, make the bubble taller instead of letting text overflow.
+  - Re-fit when the window resizes and after the font loads.
+- The tag chips and the "Start now" button scale with the text size.
+
+3. TEN POSES AND THEIR MESSAGES (12 messages, so clipboard and thinking carry two each)
+- Calendar: "Hey there! Don't forget to submit your assignments before the deadline! Let's get that A+!"
+- Alarm clock: "Psst! You have pending homework due soon. Let's finish it early so you can relax later!"
+- Megaphone: "Oras na para mag-aral! Huwag kalimutang tapusin ang iyong takdang-aralin bago ang takdang araw."
+- "REMINDER!" sign: "Double-check your tasks tab! A finished homework is a stress-free day."
+- Bell: "Keep your streak alive! Complete at least one activity today to earn bonus points!"
+- Checkmark: "Great job logging in today! You're one step closer to topping the leaderboard! 🏆"
+- Cheering: "Galing mo! Ipagpatuloy ang iyong daily streak para sa mas maraming badges at XP!"
+- Lightbulb: "Every question you practice makes you smarter and levels up your brain!"
+- Clipboard: "Take your time! Read each question and choices carefully before clicking your answer." and "For Identification questions, check your spelling carefully before hitting Submit ↵!"
+- Thinking: "Need help understanding the question? Try clicking the language translator button (🌐) at the top!" and "Huwag magmadali! Basahing mabuti ang bawat tanong bago sumagot."
+- The first four messages are about pending homework. Show them only when the student really has pending work.
+
+4. RANDOM ROTATION
+- Switch to a new pose and message about every 9 seconds, picked at random.
+- Never show the same message twice in a row.
+- Pause while the student hovers over the mascot, while a homework or exam is being answered, when the bubble is hidden, and when the browser tab is in the background.
+- Fade the bubble and mascot in on each change. Turn the animation off when reduced motion is on.
+
+5. WELCOME BY NAME
+- The first message when the page opens is a welcome with the cheering pose: "Good afternoon, Ed Ryan! 👋 Welcome back to Go Learning. You have 3 tasks to finish." If nothing is pending: "You are all caught up!"
+- The greeting changes by the student's local time: Good morning, Good afternoon, Good evening.
+- Use the logged-in student's first name and full name from their profile, not hard-coded text.
+- About 4 in 10 random tips start with "Hi {first name}!".
+- The Classes page header reads "STUDENT WORKSPACE", then "Good afternoon, {first name}! 👋", then "Welcome back, {full name}." with a "My classes" heading above the class cards.
+- The homework results screen says "Nice work, {first name}! Here is your score."
+
+6. HOMEWORK AND EXAM NOTIFICATIONS (highest priority)
+- When the student has pending work, the bubble alternates: a notification, then a random tip, then the next notification, and so on.
+- Notifications, each with a tag chip and a "Start now" button that opens that homework or exam in the player:
+  - Overdue (red bubble, alarm clock): "{title} was due {date}. Please finish it now!"
+  - Exam alert (yellow bubble, "REMINDER!" sign): "{title} is on {date and time}. Review your lessons first!"
+  - Homework (white bubble, calendar): "You have {n} homework to do. Next: {title}, due {date}."
+- Show a red count badge on the "Classes" menu item with the number of pending homework and exams.
+- Exams are a type of homework: the list shows an EXAM label instead of HW, the Homework tab is named "Homework & Exams", and the player says "Start exam" and "Submit exam".
+- When the student submits something, update the notifications and the badge right away.
+
+7. ACCESSIBILITY AND QUALITY
+- The mascot button has an accessible label such as "Show or hide reminder".
+- Do not let the rotating text steal keyboard focus.
+- Keep the page fast: compress the mascot images and the bubble images.
+- Do not change unrelated pages.

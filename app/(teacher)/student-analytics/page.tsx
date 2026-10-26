@@ -113,7 +113,6 @@ export default function StudentAnalyticsPage() {
             </div>
             <div>
               <h1 className="text-[2.2rem] font-extrabold leading-none tracking-tight text-white sm:text-[2.6rem]">Student Analytics</h1>
-              <p className="mt-1 text-sm text-sky-100 sm:text-base">Student overview • Dynamic data</p>
             </div>
           </div>
         </header>

@@ -16,19 +16,29 @@ export async function GET() {
     const [rows] = await pool.query(`
       SELECT lg.id, lg.title, lg.session_name, lg.game_type, lg.selected_student, lg.wheel_rotation,
         c.name AS class_name, c.grade_level, c.section, COALESCE(tu.name, 'Teacher') AS teacher_name,
-        (SELECT JSON_ARRAYAGG(u.name) FROM live_game_results lgr JOIN users u ON u.id = lgr.student_id WHERE lgr.game_id = lg.id) AS participants_json
+        (SELECT GROUP_CONCAT(u.name SEPARATOR '|||') FROM live_game_results lgr JOIN users u ON u.id = lgr.student_id WHERE lgr.game_id = lg.id) AS participants_str
       FROM live_games lg
       JOIN classes c ON c.id = lg.class_id
       LEFT JOIN users tu ON tu.id = lg.teacher_id
       WHERE lg.status = 'active'
-        AND EXISTS (
-          SELECT 1 FROM student_enrollments se
-          WHERE se.class_id = lg.class_id
-            AND se.status = 'active'
-            AND se.student_id = ?
+        AND (
+          EXISTS (
+            SELECT 1 FROM student_enrollments se
+            WHERE se.class_id = lg.class_id
+              AND se.student_id = ?
+          )
+          OR EXISTS (
+            SELECT 1 FROM live_game_results lgr
+            WHERE lgr.game_id = lg.id
+              AND lgr.student_id = ?
+          )
+          OR NOT EXISTS (
+            SELECT 1 FROM student_enrollments se2
+            WHERE se2.student_id = ?
+          )
         )
       ORDER BY lg.created_at DESC
-    `, [userId]);
+    `, [userId, userId, userId]);
 
     return NextResponse.json({
       games: (rows as DbRow[]).map((game) => ({
@@ -46,9 +56,9 @@ export async function GET() {
         selectedStudent: game.selected_student || null,
         rotation: Number(game.wheel_rotation || 0),
         participants:
-          typeof game.participants_json === "string"
-            ? JSON.parse(game.participants_json)
-            : game.participants_json || [],
+          typeof game.participants_str === "string" && game.participants_str.length > 0
+            ? game.participants_str.split("|||")
+            : [],
       })),
     });
   } catch (error) {

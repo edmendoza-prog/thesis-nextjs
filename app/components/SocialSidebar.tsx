@@ -3,13 +3,13 @@
 export default function SocialSidebar() {
   return (
     <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 hidden lg:block">
-      <div className="bg-blue-600 rounded-r-2xl shadow-lg flex flex-col">
+      <div className="bg-[#E11D48] rounded-r-2xl shadow-lg flex flex-col">
         {/* Twitter */}
         <a
           href="https://twitter.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="p-4 hover:bg-blue-700 transition-colors border-b border-blue-500"
+          className="p-4 hover:bg-[#BE123C] transition-colors border-b border-[#F43F5E]"
           aria-label="Twitter"
         >
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -22,7 +22,7 @@ export default function SocialSidebar() {
           href="https://facebook.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="p-4 hover:bg-blue-700 transition-colors border-b border-blue-500"
+          className="p-4 hover:bg-[#BE123C] transition-colors border-b border-[#F43F5E]"
           aria-label="Facebook"
         >
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@ export default function SocialSidebar() {
           href="https://instagram.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="p-4 hover:bg-blue-700 transition-colors border-b border-blue-500"
+          className="p-4 hover:bg-[#BE123C] transition-colors border-b border-[#F43F5E]"
           aria-label="Instagram"
         >
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@ export default function SocialSidebar() {
           href="https://youtube.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="p-4 hover:bg-blue-700 transition-colors rounded-br-2xl"
+          className="p-4 hover:bg-[#BE123C] transition-colors rounded-br-2xl"
           aria-label="YouTube"
         >
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">

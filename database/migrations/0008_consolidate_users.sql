@@ -1,6 +1,21 @@
 -- Migration 0008: Consolidate Teachers and Students into Users Table
 
--- 1. Safely Drop the old tables
+SET FOREIGN_KEY_CHECKS = 0;
+
+ALTER TABLE users 
+  ADD COLUMN IF NOT EXISTS student_number VARCHAR(50) NULL UNIQUE,
+  ADD COLUMN IF NOT EXISTS guardian_name VARCHAR(150) NULL,
+  ADD COLUMN IF NOT EXISTS guardian_contact VARCHAR(50) NULL,
+  ADD COLUMN IF NOT EXISTS birth_date DATE NULL,
+  ADD COLUMN IF NOT EXISTS employee_id VARCHAR(50) NULL,
+  ADD COLUMN IF NOT EXISTS department VARCHAR(100) NULL,
+  ADD COLUMN IF NOT EXISTS designation VARCHAR(100) NULL,
+  ADD COLUMN IF NOT EXISTS bio TEXT NULL;
+
+DROP TABLE IF EXISTS live_game_players;
+DROP TABLE IF EXISTS live_game_questions;
+DROP TABLE IF EXISTS class_recordings;
 DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS teachers;
 
+SET FOREIGN_KEY_CHECKS = 1;

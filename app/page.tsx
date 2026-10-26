@@ -1,16 +1,22 @@
 import Navigation from './components/Navigation';
-import SocialSidebar from './components/SocialSidebar';
-import HeroSection from './components/HeroSection';
-import FeaturesSection from './components/FeaturesSection';
+import SimpleHero from './components/home/SimpleHero';
+import SimpleFeatures from './components/home/SimpleFeatures';
+import SimpleHowItWorks from './components/home/SimpleHowItWorks';
+import SimpleGames from './components/home/SimpleGames';
+import SimpleCta from './components/home/SimpleCta';
 import Footer from './components/Footer';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col selection:bg-sky-500 selection:text-white">
       <Navigation />
-      <SocialSidebar />
-      <HeroSection />
-      <FeaturesSection />
+      <main className="flex-grow">
+        <SimpleHero />
+        <SimpleFeatures />
+        <SimpleHowItWorks />
+        <SimpleGames />
+        <SimpleCta />
+      </main>
       <Footer />
     </div>
   );

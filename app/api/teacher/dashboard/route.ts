@@ -10,7 +10,18 @@ export async function GET() {
     }
     const userId = user.id;
 
-
+    let teacherName = 'Teacher';
+    try {
+      const [userRows] = await pool.query(
+        'SELECT name FROM users WHERE id = ? LIMIT 1',
+        [userId]
+      );
+      if ((userRows as any[]).length > 0 && (userRows as any[])[0].name) {
+        teacherName = (userRows as any[])[0].name;
+      }
+    } catch (e) {
+      console.error('Error fetching teacher name:', e);
+    }
 
     let totalStudents = 0;
     let totalActivities = 0;
@@ -66,7 +77,10 @@ export async function GET() {
       }
 
       const [rows] = await pool.query(`
-        SELECT u.name AS student_name,
+        SELECT u.id AS student_id,
+          u.name AS student_name,
+          u.student_number,
+          u.avatar_seed,
           a.title AS activity_title,
           ROUND((s.score / s.max_score) * 100, 2) AS percentage,
           s.submitted_at AS time_graded
@@ -134,6 +148,7 @@ export async function GET() {
     const recentActivity = (recentRows as any[]).map((row, index) => ({
       name: row.student_name || `Student ${index + 1}`,
       initials: (row.student_name || 'S').split(' ').map((part: string) => part[0]).slice(0, 2).join('').toUpperCase(),
+      avatarSeed: row.avatar_seed || row.student_number || String(row.student_id || '') || row.student_name || 'Student',
       color: index % 2 === 0 ? 'bg-secondary-200' : 'bg-primary-200',
       action: row.activity_title ? `Completed ${row.activity_title}` : 'Recent classroom activity',
       score: row.percentage != null ? `${row.percentage}%` : '',
@@ -170,6 +185,7 @@ export async function GET() {
     }));
 
     return NextResponse.json({
+      teacherName,
       stats,
       recentActivity,
       notifications,

@@ -1,29 +1,35 @@
 import type { Metadata } from "next";
-import { Fredoka, Nunito } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Nunito } from "next/font/google";
 import "./globals.css";
 
-const fredoka = Fredoka({
-  variable: "--font-fredoka",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
+
+const inter = Inter({
+  variable: "--font-body",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Learning Management System",
-  description: "A flexible learning management system for students and teachers.",
+  title: "Go Learning - Digital Learning & Classroom Management",
+  description: "A modern, professional learning management platform for students and educators.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${inter.variable} ${nunito.variable} h-full antialiased`}
     >
       <head>
         <link
@@ -31,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 antialiased selection:bg-indigo-500 selection:text-white">{children}</body>
     </html>
   );
 }

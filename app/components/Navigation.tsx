@@ -1,80 +1,58 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+
+export function GoLearningLogo({ inverted = false }: { inverted?: boolean }) {
+  return (
+    <span className="flex items-center gap-2.5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-xs">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+      </span>
+      <span className="flex flex-col leading-tight">
+        <span className={`text-lg font-bold tracking-tight ${inverted ? 'text-white' : 'text-slate-900'}`}>
+          GO Learning
+        </span>
+        <span className={`text-[11px] font-medium ${inverted ? 'text-slate-300' : 'text-slate-500'}`}>
+          Teacher Workspace
+        </span>
+      </span>
+    </span>
+  );
+}
 
 export default function Navigation() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              Sacred Heart LMS
-            </Link>
-          </div>
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Simple Brand */}
+        <Link href="/" aria-label="GO Learning home">
+          <GoLearningLogo />
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-800 hover:text-blue-600 font-semibold transition-colors">
-              Home
-            </Link>
-            <Link href="/courses" className="text-gray-800 hover:text-blue-600 font-semibold transition-colors">
-              Courses
-            </Link>
-            <Link href="/contact" className="text-gray-800 hover:text-blue-600 font-semibold transition-colors">
-              Contact
-            </Link>
-          </div>
-
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer shadow-sm hover:shadow">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Sign up | Log in
-              </button>
-            </Link>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-800 hover:text-blue-600 focus:outline-none"
-            >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
+        {/* Simple Navbar Actions: Log in & Sign Up */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            id="nav-login"
+            className="text-sm font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 transition-colors"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/login/teacher"
+            id="nav-signup"
+            className="text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 px-4 py-2 rounded-xl transition-colors shadow-xs"
+          >
+            Sign Up
+          </Link>
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden pb-4">
-            <div className="flex flex-col space-y-3">
-              <Link href="/" className="text-gray-800 hover:text-blue-600 font-semibold py-2">Home</Link>
-              <Link href="/courses" className="text-gray-800 hover:text-blue-600 font-semibold py-2">Courses</Link>
-              <Link href="/contact" className="text-gray-800 hover:text-blue-600 font-semibold py-2">Contact</Link>
-              <Link href="/login">
-                <button className="bg-blue-600 text-white font-semibold py-3 px-6 rounded-full mt-2 w-full">
-                  Sign up | Log in
-                </button>
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
-    </nav>
+    </header>
   );
 }

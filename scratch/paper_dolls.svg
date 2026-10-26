@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 260" width="100%" height="100%">
+  <defs>
+    <filter id="paper-shadow" x="-10%" y="-10%" width="120%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+    <pattern id="doll-stripes" width="8" height="8" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="8" y2="8" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    </pattern>
+    <pattern id="doll-dots" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="1.5" fill="rgba(255,255,255,0.35)"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .paper-fold { stroke: rgba(0,0,0,0.08); stroke-dasharray: 3 3; stroke-width: 1.5; }
+    .face-feature { fill: #2c3e50; }
+    .blush { fill: #ff7675; opacity: 0.5; }
+  </style>
+
+  <!-- Background decorative elements: faint craft table stitches -->
+  <rect x="10" y="10" width="500" height="240" rx="16" fill="#FFF9F2" stroke="#EFE4D6" stroke-width="2" stroke-dasharray="6 6"/>
+  <circle cx="50" cy="40" r="14" fill="#FFEDB3" opacity="0.6"/>
+  <path d="M 460 30 Q 475 20 490 35" stroke="#0bc2cf" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 30 220 Q 45 235 60 220" stroke="#FF6B6B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Paper doll drop shadows on ground -->
+  <ellipse cx="70" cy="225" rx="36" ry="6" fill="#000000" opacity="0.08"/>
+  <ellipse cx="160" cy="225" rx="36" ry="6" fill="#000000" opacity="0.08"/>
+  <ellipse cx="250" cy="225" rx="36" ry="6" fill="#000000" opacity="0.08"/>
+  <ellipse cx="340" cy="225" rx="36" ry="6" fill="#000000" opacity="0.08"/>
+  <ellipse cx="430" cy="225" rx="36" ry="6" fill="#000000" opacity="0.08"/>
+
+  <!-- CONTINUOUS ROW OF PAPER DOLLS HOLDING HANDS (Connected arms!) -->
+  <g id="dolls-group" filter="url(#paper-shadow)">
+
+    <!-- DOLL 1: Coral Red / Pink (#FF5E7E) -->
+    <g id="doll-1" transform="translate(30, 45)">
+      <!-- Arm bridge connecting to left border & doll 2 -->
+      <path d="M 10 95 L 25 75 L 35 75 L 25 110 L 10 110 Z" fill="#FF5E7E"/>
+      <path d="M 55 75 L 75 95 L 90 95 L 65 75 Z" fill="#FF5E7E"/>
+      <!-- Body / Dress -->
+      <path d="M 30 70 L 60 70 L 75 145 L 15 145 Z" fill="#FF5E7E"/>
+      <!-- Pattern overlay -->
+      <path d="M 30 70 L 60 70 L 75 145 L 15 145 Z" fill="url(#doll-dots)"/>
+      <!-- Legs -->
+      <rect x="26" y="145" width="12" height="32" rx="4" fill="#FFD2B2"/>
+      <rect x="52" y="145" width="12" height="32" rx="4" fill="#FFD2B2"/>
+      <!-- Shoes -->
+      <path d="M 22 173 C 22 168 38 168 40 177 L 22 177 Z" fill="#E84364"/>
+      <path d="M 48 173 C 48 168 64 168 66 177 L 48 177 Z" fill="#E84364"/>
+      <!-- Head & Hair -->
+      <circle cx="45" cy="38" r="22" fill="#FFD2B2"/>
+      <!-- Cute coral braided pigtails -->
+      <circle cx="20" cy="36" r="9" fill="#78350F"/>
+      <circle cx="70" cy="36" r="9" fill="#78350F"/>
+      <path d="M 25 35 C 25 16 65 16 65 35 C 55 24 35 24 25 35 Z" fill="#78350F"/>
+      <!-- Face -->
+      <circle cx="38" cy="37" r="2.5" class="face-feature"/>
+      <circle cx="52" cy="37" r="2.5" class="face-feature"/>
+      <circle cx="34" cy="42" r="3" class="blush"/>
+      <circle cx="56" cy="42" r="3" class="blush"/>
+      <path d="M 41 45 Q 45 49 49 45" stroke="#2c3e50" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Cutout star badge on dress -->
+      <circle cx="45" cy="105" r="7" fill="#FFF3BF"/>
+    </g>
+
+    <!-- CONNECTING HAND CLASP 1-2 -->
+    <path d="M 105 138 C 115 134 125 134 135 138 C 130 146 110 146 105 138 Z" fill="#FF5E7E"/>
+
+    <!-- DOLL 2: Sunshine Yellow / Orange (#FFB703) -->
+    <g id="doll-2" transform="translate(120, 45)">
+      <!-- Arms -->
+      <path d="M 5 95 L 25 75 L 35 75 L 15 105 Z" fill="#FFB703"/>
+      <path d="M 55 75 L 75 95 L 90 95 L 65 75 Z" fill="#FFB703"/>
+      <!-- Body / Shirt & Shorts -->
+      <path d="M 30 70 L 60 70 L 66 115 L 24 115 Z" fill="#FFB703"/>
+      <path d="M 24 115 L 66 115 L 70 140 L 20 140 Z" fill="#1D3557"/>
+      <!-- Legs -->
+      <rect x="26" y="140" width="12" height="36" rx="4" fill="#FAD2B0"/>
+      <rect x="52" y="140" width="12" height="36" rx="4" fill="#FAD2B0"/>
+      <!-- Shoes -->
+      <rect x="22" y="170" width="18" height="8" rx="4" fill="#E63946"/>
+      <rect x="50" y="170" width="18" height="8" rx="4" fill="#E63946"/>
+      <!-- Head & Cap -->
+      <circle cx="45" cy="38" r="22" fill="#FAD2B0"/>
+      <path d="M 24 34 C 24 16 66 16 66 34 Z" fill="#D97706"/>
+      <!-- Cap visor -->
+      <path d="M 22 34 L 72 34 C 76 34 76 38 68 39 L 26 39 Z" fill="#B45309"/>
+      <!-- Face -->
+      <circle cx="38" cy="40" r="2.5" class="face-feature"/>
+      <circle cx="52" cy="40" r="2.5" class="face-feature"/>
+      <circle cx="34" cy="45" r="3" class="blush"/>
+      <circle cx="56" cy="45" r="3" class="blush"/>
+      <path d="M 40 48 Q 45 53 50 48" stroke="#2c3e50" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Pocket detail -->
+      <rect x="38" y="85" width="14" height="14" rx="3" fill="#F59E0B" stroke="#D97706" stroke-width="1.5"/>
+    </g>
+
+    <!-- CONNECTING HAND CLASP 2-3 -->
+    <path d="M 195 138 C 205 134 215 134 225 138 C 220 146 200 146 195 138 Z" fill="#0BC2CF"/>
+
+    <!-- DOLL 3: Center Playroom Teal (#0BC2CF) -->
+    <g id="doll-3" transform="translate(210, 40)">
+      <!-- Slightly taller center leader doll -->
+      <!-- Arms -->
+      <path d="M 5 100 L 25 80 L 35 80 L 15 110 Z" fill="#0BC2CF"/>
+      <path d="M 55 80 L 75 100 L 90 100 L 65 80 Z" fill="#0BC2CF"/>
+      <!-- Body / Overalls -->
+      <path d="M 30 75 L 60 75 L 72 150 L 18 150 Z" fill="#0BC2CF"/>
+      <path d="M 30 75 L 60 75 L 72 150 L 18 150 Z" fill="url(#doll-stripes)"/>
+      <!-- Overalls straps -->
+      <rect x="33" y="75" width="6" height="24" fill="#08939D"/>
+      <rect x="51" y="75" width="6" height="24" fill="#08939D"/>
+      <circle cx="36" cy="99" r="2" fill="#FFFFFF"/>
+      <circle cx="54" cy="99" r="2" fill="#FFFFFF"/>
+      <!-- Legs -->
+      <rect x="26" y="150" width="12" height="35" rx="4" fill="#FFDFC4"/>
+      <rect x="52" y="150" width="12" height="35" rx="4" fill="#FFDFC4"/>
+      <!-- Shoes -->
+      <path d="M 22 178 C 22 173 38 173 40 183 L 22 183 Z" fill="#08838C"/>
+      <path d="M 48 178 C 48 173 64 173 66 183 L 48 183 Z" fill="#08838C"/>
+      <!-- Head & Fun Hair with Paper Crown -->
+      <circle cx="45" cy="40" r="23" fill="#FFDFC4"/>
+      <path d="M 22 36 C 22 18 68 18 68 36 C 60 25 30 25 22 36 Z" fill="#4B2810"/>
+      <!-- Golden paper crown -->
+      <path d="M 30 18 L 36 28 L 45 15 L 54 28 L 60 18 L 60 28 L 30 28 Z" fill="#FFD166" stroke="#F4A261" stroke-width="1.2"/>
+      <!-- Face -->
+      <circle cx="38" cy="41" r="2.5" class="face-feature"/>
+      <circle cx="52" cy="41" r="2.5" class="face-feature"/>
+      <circle cx="33" cy="46" r="3.5" class="blush"/>
+      <circle cx="57" cy="46" r="3.5" class="blush"/>
+      <!-- Big cheerful smile -->
+      <path d="M 38 48 Q 45 56 52 48" stroke="#2c3e50" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="45" cy="120" r="10" fill="#FFFFFF" opacity="0.9"/>
+      <path d="M 45 113 L 47 118 L 52 119 L 48 123 L 49 128 L 45 125 L 41 128 L 42 123 L 38 119 L 43 118 Z" fill="#0BC2CF"/>
+    </g>
+
+    <!-- CONNECTING HAND CLASP 3-4 -->
+    <path d="M 285 138 C 295 134 305 134 315 138 C 310 146 290 146 285 138 Z" fill="#9D4EDD"/>
+
+    <!-- DOLL 4: Bright Violet / Purple (#9D4EDD) -->
+    <g id="doll-4" transform="translate(300, 45)">
+      <!-- Arms -->
+      <path d="M 5 95 L 25 75 L 35 75 L 15 105 Z" fill="#9D4EDD"/>
+      <path d="M 55 75 L 75 95 L 90 95 L 65 75 Z" fill="#9D4EDD"/>
+      <!-- Body / Dress -->
+      <path d="M 30 70 L 60 70 L 75 145 L 15 145 Z" fill="#9D4EDD"/>
+      <path d="M 30 70 L 60 70 L 75 145 L 15 145 Z" fill="url(#doll-dots)"/>
+      <!-- Scalloped hemline -->
+      <circle cx="23" cy="145" r="6" fill="#C77DFF"/>
+      <circle cx="34" cy="145" r="6" fill="#C77DFF"/>
+      <circle cx="45" cy="145" r="6" fill="#C77DFF"/>
+      <circle cx="56" cy="145" r="6" fill="#C77DFF"/>
+      <circle cx="67" cy="145" r="6" fill="#C77DFF"/>
+      <!-- Legs -->
+      <rect x="26" y="145" width="12" height="32" rx="4" fill="#E8B48A"/>
+      <rect x="52" y="145" width="12" height="32" rx="4" fill="#E8B48A"/>
+      <!-- Shoes -->
+      <path d="M 22 173 C 22 168 38 168 40 177 L 22 177 Z" fill="#7B2CBF"/>
+      <path d="M 48 173 C 48 168 64 168 66 177 L 48 177 Z" fill="#7B2CBF"/>
+      <!-- Head & Top-bun Hair -->
+      <circle cx="45" cy="38" r="22" fill="#E8B48A"/>
+      <circle cx="45" cy="12" r="10" fill="#2D1500"/>
+      <circle cx="45" cy="12" r="12" stroke="#FFD166" stroke-width="2" fill="none"/>
+      <path d="M 24 34 C 24 16 66 16 66 34 C 55 24 35 24 24 34 Z" fill="#2D1500"/>
+      <!-- Face -->
+      <circle cx="38" cy="38" r="2.5" class="face-feature"/>
+      <circle cx="52" cy="38" r="2.5" class="face-feature"/>
+      <circle cx="34" cy="43" r="3" class="blush"/>
+      <circle cx="56" cy="43" r="3" class="blush"/>
+      <path d="M 41 46 Q 45 50 49 46" stroke="#2c3e50" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <circle cx="45" cy="100" r="6" fill="#FFFFFF" opacity="0.8"/>
+    </g>
+
+    <!-- CONNECTING HAND CLASP 4-5 -->
+    <path d="M 375 138 C 385 134 395 134 405 138 C 400 146 380 146 375 138 Z" fill="#06D6A0"/>
+
+    <!-- DOLL 5: Bright Lime Mint Green (#06D6A0) -->
+    <g id="doll-5" transform="translate(390, 45)">
+      <!-- Arms -->
+      <path d="M 5 95 L 25 75 L 35 75 L 15 105 Z" fill="#06D6A0"/>
+      <path d="M 55 75 L 75 95 L 90 95 L 65 75 Z" fill="#06D6A0"/>
+      <!-- Body / Hoodie & Shorts -->
+      <path d="M 28 70 L 62 70 L 68 118 L 22 118 Z" fill="#06D6A0"/>
+      <path d="M 22 118 L 68 118 L 70 142 L 20 142 Z" fill="#118AB2"/>
+      <!-- Legs -->
+      <rect x="26" y="142" width="12" height="34" rx="4" fill="#FAD2B0"/>
+      <rect x="52" y="142" width="12" height="34" rx="4" fill="#FAD2B0"/>
+      <!-- Shoes -->
+      <rect x="22" y="172" width="18" height="8" rx="4" fill="#059669"/>
+      <rect x="50" y="172" width="18" height="8" rx="4" fill="#059669"/>
+      <!-- Head & Cool Spiky Hair -->
+      <circle cx="45" cy="38" r="22" fill="#FAD2B0"/>
+      <!-- Spiky playful hair -->
+      <path d="M 22 34 L 28 18 L 36 26 L 45 16 L 54 26 L 62 18 L 68 34 Z" fill="#6B2D5C"/>
+      <!-- Face -->
+      <circle cx="38" cy="39" r="2.5" class="face-feature"/>
+      <circle cx="52" cy="39" r="2.5" class="face-feature"/>
+      <circle cx="34" cy="44" r="3" class="blush"/>
+      <circle cx="56" cy="44" r="3" class="blush"/>
+      <path d="M 40 48 Q 45 52 50 48" stroke="#2c3e50" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Cute smiley badge -->
+      <circle cx="45" cy="94" r="8" fill="#FFD166"/>
+      <circle cx="42" cy="93" r="1.2" fill="#2c3e50"/>
+      <circle cx="48" cy="93" r="1.2" fill="#2c3e50"/>
+      <path d="M 42 96 Q 45 99 48 96" stroke="#2c3e50" stroke-width="1" fill="none"/>
+    </g>
+
+  </g>
+
+  <!-- Accordion paper fold lines indicating folded craft sheet -->
+  <line x1="117" y1="40" x2="117" y2="230" class="paper-fold"/>
+  <line x1="207" y1="40" x2="207" y2="230" class="paper-fold"/>
+  <line x1="297" y1="40" x2="297" y2="230" class="paper-fold"/>
+  <line x1="387" y1="40" x2="387" y2="230" class="paper-fold"/>
+</svg>

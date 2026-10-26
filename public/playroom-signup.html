@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Playroom - Level Up Engagement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Titan+One&display=swap" rel="stylesheet">
+  <style>
+    /* CSS Variables for Light & Dark Mode */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-left: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --border-bottom-color: #cbd5e1;
+      --divider-color: #e2e8f0;
+      --input-bg: #f8fafc;
+      --input-border: #cbd5e1;
+      --input-border-bottom: #94a3b8;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-border-bottom: #cbd5e1;
+      --card-hover-bg: #f8fafc;
+
+      /* Brand colors */
+      --teal-primary: #0bc2cf;
+      --teal-dark: #08939d;
+      --teal-darker: #06727a;
+      --teal-tint: rgba(11, 194, 207, 0.12);
+      --teal-tint-hover: rgba(11, 194, 207, 0.2);
+
+      /* UI feedback */
+      --error-bg: #fff1f2;
+      --error-border: #f43f5e;
+      --error-text: #be123c;
+      --focus-ring: #0bc2cf;
+
+      --secondary-btn-bg: #ffffff;
+      --secondary-btn-text: #475569;
+      --secondary-btn-border: #cbd5e1;
+      --secondary-btn-bottom: #94a3b8;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0b111a;
+      --bg-left: #111827;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: #2e3a4e;
+      --border-bottom-color: #1e293b;
+      --divider-color: #1e293b;
+      --input-bg: #1e293b;
+      --input-border: #334155;
+      --input-border-bottom: #1e293b;
+      --card-bg: #1a2332;
+      --card-border: #334155;
+      --card-border-bottom: #1e293b;
+      --card-hover-bg: #222f44;
+
+      --teal-primary: #0bc2cf;
+      --teal-dark: #077d85;
+      --teal-darker: #055f65;
+      --teal-tint: rgba(11, 194, 207, 0.18);
+      --teal-tint-hover: rgba(11, 194, 207, 0.28);
+
+      --error-bg: #3f1118;
+      --error-border: #f43f5e;
+      --error-text: #fecdd3;
+      --focus-ring: #38e1ed;
+
+      --secondary-btn-bg: #1e293b;
+      --secondary-btn-text: #cbd5e1;
+      --secondary-btn-border: #334155;
+      --secondary-btn-bottom: #0f172a;
+    }
+
+    /* Base Reset & Typography */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Layout: Split Screen */
+    .signup-container {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* Left Half: Form Area */
+    .left-half {
+      flex: 1 1 50%;
+      background-color: var(--bg-left);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px 48px;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Divider (8px thin grey vertical divider) */
+    .vertical-divider {
+      width: 8px;
+      background-color: var(--divider-color);
+      flex-shrink: 0;
+    }
+
+    /* Right Half: Teal with pattern */
+    .right-half {
+      flex: 1 1 50%;
+      background-color: #0bc2cf;
+      background-image: 
+        radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.15) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='18' y='18' width='28' height='28' rx='8' transform='rotate(45 32 32)' fill='%23ffffff' fill-opacity='0.16'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: auto, 64px 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 32px;
+      position: relative;
+      text-align: center;
+    }
+
+    /* Right Half Content Card */
+    .hero-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 40px rgba(7, 114, 122, 0.25);
+      border-bottom: 6px solid #d9e2ec;
+      transform: translateY(0);
+      transition: transform 0.25s ease;
+    }
+
+    .hero-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .hero-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+
+    .tagline {
+      margin-top: 28px;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 1.25rem;
+      line-height: 1.4;
+      max-width: 400px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Left Half Header */
+    .top-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    /* Chunky Logo Box */
+    .logo-box {
+      background-color: var(--teal-primary);
+      color: #ffffff;
+      font-family: 'Titan One', cursive, sans-serif;
+      font-size: 1.45rem;
+      letter-spacing: 0.5px;
+      padding: 8px 18px;
+      border-radius: 12px;
+      border-bottom: 5px solid var(--teal-dark);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      box-shadow: 0 4px 10px rgba(11, 194, 207, 0.25);
+      text-decoration: none;
+      transition: transform 0.1s ease, border-bottom 0.1s ease;
+    }
+
+    .logo-box:active {
+      transform: translateY(2px);
+      border-bottom-width: 3px;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Outlined Login Button */
+    .btn-login {
+      background-color: transparent;
+      border: 2px solid var(--border-color);
+      border-bottom: 4px solid var(--border-bottom-color);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-login:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--teal-primary);
+      color: var(--teal-primary);
+    }
+
+    .btn-login:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+
+    /* Theme Toggle Button */
+    .btn-theme {
+      background: transparent;
+      border: 2px solid var(--border-color);
+      border-bottom: 4px solid var(--border-bottom-color);
+      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-main);
+      font-size: 1.15rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn-theme:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--teal-primary);
+    }
+
+    .btn-theme:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+
+    /* Form Body Container */
+    .form-wrapper {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 12px 0 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Progress Indicators */
+    .progress-track {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 28px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 10px;
+      background-color: var(--border-color);
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.3s ease;
+    }
+
+    .progress-bar.active {
+      background-color: var(--teal-primary);
+      box-shadow: 0 0 8px rgba(11, 194, 207, 0.4);
+    }
+
+    /* Headings */
+    .step-heading {
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+
+    .step-subheading {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      background-color: var(--teal-tint);
+      color: var(--teal-primary);
+      border: 1px solid rgba(11, 194, 207, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Step Pages */
+    .step-page {
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .step-page.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Page 1: Role Selection Cards */
+    .role-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .role-card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-bottom: 5px solid var(--card-border-bottom);
+      border-radius: 14px;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .role-card:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--teal-primary);
+      border-bottom-color: var(--teal-dark);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(11, 194, 207, 0.15);
+    }
+
+    .role-card:active {
+      transform: translateY(2px);
+      border-bottom-width: 3px;
+    }
+
+    .role-icon-box {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .role-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .role-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    /* Form Fields Styling */
+    .form-group {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      border: 2px solid var(--input-border);
+      border-bottom: 4px solid var(--input-border-bottom);
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--teal-primary);
+      border-bottom-color: var(--teal-dark);
+      background-color: var(--card-bg);
+    }
+
+    /* Chunky Grade Selector Buttons */
+    .grade-btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .grade-btn {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 12px 8px;
+      border-radius: 10px;
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 2px solid var(--card-border);
+      border-bottom: 4px solid var(--card-border-bottom);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .grade-btn:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--teal-primary);
+    }
+
+    .grade-btn.selected {
+      border-color: var(--teal-primary);
+      border-bottom-color: var(--teal-dark);
+      background-color: var(--teal-tint);
+      color: var(--teal-primary);
+      font-weight: 800;
+    }
+
+    .grade-btn:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+
+    /* Auth Toggle (Email vs Google) */
+    .auth-toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .auth-toggle-btn {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 2px solid var(--card-border);
+      border-bottom: 4px solid var(--card-border-bottom);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .auth-toggle-btn:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--teal-primary);
+    }
+
+    .auth-toggle-btn.selected {
+      border-color: var(--teal-primary);
+      border-bottom-color: var(--teal-dark);
+      background-color: var(--teal-tint);
+      color: var(--teal-primary);
+      font-weight: 800;
+    }
+
+    .auth-toggle-btn:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+
+    /* Google Button Mock */
+    .google-mock-btn {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 2px solid var(--card-border);
+      border-bottom: 4px solid var(--card-border-bottom);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .google-mock-btn:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--teal-primary);
+    }
+
+    .google-mock-btn:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+
+    .google-mock-btn.linked {
+      background-color: #ecfdf5;
+      border-color: #10b981;
+      border-bottom-color: #059669;
+      color: #065f46;
+      font-weight: 800;
+    }
+
+    [data-theme="dark"] .google-mock-btn.linked {
+      background-color: #064e3b;
+      border-color: #10b981;
+      border-bottom-color: #047857;
+      color: #a7f3d0;
+    }
+
+    /* Date of Birth Dropdowns */
+    .dob-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1.2fr;
+      gap: 10px;
+    }
+
+    .dob-select {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 11px 10px;
+      border-radius: 10px;
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      border: 2px solid var(--input-border);
+      border-bottom: 4px solid var(--input-border-bottom);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 26px;
+    }
+
+    .dob-select:focus {
+      border-color: var(--teal-primary);
+      border-bottom-color: var(--teal-dark);
+    }
+
+    /* Confirmation Checkbox */
+    .checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .checkbox-custom {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background-color: var(--input-bg);
+      border: 2px solid var(--input-border);
+      border-bottom: 4px solid var(--input-border-bottom);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      margin-top: 1px;
+    }
+
+    .checkbox-custom::after {
+      content: "✓";
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 900;
+      display: none;
+    }
+
+    .checkbox-input:checked + .checkbox-custom {
+      background-color: var(--teal-primary);
+      border-color: var(--teal-primary);
+      border-bottom-color: var(--teal-dark);
+    }
+
+    .checkbox-input:checked + .checkbox-custom::after {
+      display: block;
+    }
+
+    .checkbox-input:focus-visible + .checkbox-custom {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .checkbox-label-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    /* Hint text */
+    .field-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Action Buttons (Back & Next / Finish) */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-primary {
+      flex: 2;
+      background-color: var(--teal-primary);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 13px 20px;
+      border-radius: 10px;
+      border: 2px solid var(--teal-primary);
+      border-bottom: 5px solid var(--teal-dark);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background-color: #0dcad7;
+    }
+
+    .btn-primary:active {
+      transform: translateY(2px);
+      border-bottom-width: 3px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background-color: var(--secondary-btn-bg);
+      color: var(--secondary-btn-text);
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 13px 18px;
+      border-radius: 10px;
+      border: 2px solid var(--secondary-btn-border);
+      border-bottom: 5px solid var(--secondary-btn-bottom);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--card-hover-bg);
+      border-color: var(--text-muted);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(2px);
+      border-bottom-width: 3px;
+    }
+
+    /* Error Message Box */
+    .error-box {
+      margin-top: 18px;
+      padding: 12px 16px;
+      background-color: var(--error-bg);
+      border: 2px solid var(--error-border);
+      border-radius: 10px;
+      color: var(--error-text);
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.35;
+      animation: shake 0.35s ease;
+    }
+
+    .error-box.active {
+      display: flex;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    /* Welcome / Success Screen */
+    .welcome-container {
+      text-align: center;
+      padding: 10px 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .welcome-icon-box {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: var(--teal-tint);
+      border: 3px solid var(--teal-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      font-size: 2.5rem;
+    }
+
+    .welcome-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .welcome-message {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--teal-primary);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    .welcome-summary-card {
+      background-color: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-bottom: 4px solid var(--card-border-bottom);
+      border-radius: 14px;
+      padding: 20px 24px;
+      width: 100%;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+      font-size: 0.95rem;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .summary-value {
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    /* Modal for Login mock */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      border: 2px solid var(--card-border);
+      border-bottom: 6px solid var(--card-border-bottom);
+      padding: 32px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Accessibility: Visible Keyboard Focus */
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    .role-card:focus-visible,
+    .btn-login:focus-visible,
+    .btn-theme:focus-visible,
+    .logo-box:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+
+    /* Accessibility: Reduced Motion Support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001s !important;
+      }
+    }
+
+    /* Responsive Breakpoint: Narrower than 820px */
+    @media (max-width: 819px) {
+      .right-half,
+      .vertical-divider {
+        display: none !important;
+      }
+      .left-half {
+        flex: 1 1 100%;
+        padding: 24px 20px;
+      }
+      .form-wrapper {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="signup-container">
+    
+    <!-- LEFT HALF: Form & Navigation -->
+    <div class="left-half">
+      
+      <!-- Top Bar: Logo box, Theme toggle, and Outlined Log in button -->
+      <header class="top-header">
+        <a href="#home" class="logo-box" aria-label="Playroom Home">
+          <span>Playroom</span>
+        </a>
+
+        <div class="top-controls">
+          <button type="button" id="themeToggleBtn" class="btn-theme" aria-label="Toggle dark mode" title="Toggle color scheme">
+            <span id="themeIcon">🌙</span>
+          </button>
+          <button type="button" id="loginBtn" class="btn-login">Log in</button>
+        </div>
+      </header>
+
+      <!-- Centered Form Container -->
+      <main class="form-wrapper">
+        
+        <!-- 3 Progress Bars that turn teal as user advances -->
+        <div class="progress-track" aria-label="Sign-up Progress">
+          <div class="progress-bar active" id="progBar1" title="Step 1: Role"></div>
+          <div class="progress-bar" id="progBar2" title="Step 2: Info"></div>
+          <div class="progress-bar" id="progBar3" title="Step 3: Username"></div>
+        </div>
+
+        <!-- ==================== STEP 1: Who are you? ==================== -->
+        <section class="step-page active" id="step1" aria-labelledby="step1Title">
+          <h1 class="step-heading" id="step1Title">Who are you?</h1>
+          <p class="step-subheading">Choose your account type to get started with Playroom.</p>
+
+          <div class="role-cards-grid">
+            <!-- Student Card -->
+            <div class="role-card" id="studentCard" role="button" tabindex="0" aria-label="Sign up as a Student">
+              <div class="role-icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80">
+  <circle cx="50" cy="50" r="46" fill="#FFF3BF" stroke="#FFD43B" stroke-width="4"/>
+  <!-- Yellow hoodie / body -->
+  <path d="M 22 88 C 22 68 36 60 50 60 C 64 60 78 68 78 88 Z" fill="#FCC419"/>
+  <!-- Hoodie zipper/collar -->
+  <path d="M 46 62 L 50 72 L 54 62 Z" fill="#E67700"/>
+  <!-- Head -->
+  <circle cx="50" cy="40" r="22" fill="#FFE3A8"/>
+  <!-- Yellow cap turned backwards -->
+  <path d="M 28 36 C 28 20 72 20 72 36 Z" fill="#FAB005"/>
+  <rect x="25" y="34" width="50" height="6" rx="3" fill="#F59F00"/>
+  <!-- Eyes -->
+  <circle cx="43" cy="40" r="3" fill="#212529"/>
+  <circle cx="57" cy="40" r="3" fill="#212529"/>
+  <circle cx="44" cy="39" r="1" fill="#FFFFFF"/>
+  <circle cx="58" cy="39" r="1" fill="#FFFFFF"/>
+  <!-- Rosy cheeks -->
+  <circle cx="37" cy="45" r="3.5" fill="#FF8787" opacity="0.6"/>
+  <circle cx="63" cy="45" r="3.5" fill="#FF8787" opacity="0.6"/>
+  <!-- Big cheerful kid smile -->
+  <path d="M 44 46 Q 50 53 56 46" stroke="#212529" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <!-- Playful pencil behind ear -->
+  <g transform="rotate(25 72 30)">
+    <rect x="68" y="20" width="6" height="20" fill="#FF6B6B" rx="1"/>
+    <polygon points="68,20 74,20 71,13" fill="#FFE066"/>
+    <polygon points="70,15 72,15 71,13" fill="#212529"/>
+  </g>
+</svg>
+              </div>
+              <h2 class="role-title">Student</h2>
+              <p class="role-desc">Ready to play quests, solve games & level up!</p>
+            </div>
+
+            <!-- Teacher Card -->
+            <div class="role-card" id="teacherCard" role="button" tabindex="0" aria-label="Sign up as a Teacher">
+              <div class="role-icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80">
+  <circle cx="50" cy="50" r="46" fill="#EBD4CB" stroke="#B88A75" stroke-width="4"/>
+  <!-- Brown teacher blazer / clothes -->
+  <path d="M 22 88 C 22 66 36 60 50 60 C 64 60 78 66 78 88 Z" fill="#6F4E37"/>
+  <!-- Teal collared shirt inside -->
+  <polygon points="44,60 56,60 50,75" fill="#0BC2CF"/>
+  <polygon points="40,60 46,68 45,60" fill="#FFFFFF"/>
+  <polygon points="60,60 54,68 55,60" fill="#FFFFFF"/>
+  <!-- Head with warm brown skin tone -->
+  <circle cx="50" cy="40" r="22" fill="#9C6B53"/>
+  <!-- Brown wavy hair -->
+  <path d="M 28 35 C 26 18 74 18 72 35 C 65 24 35 24 28 35 Z" fill="#4A2E1B"/>
+  <circle cx="28" cy="36" r="6" fill="#4A2E1B"/>
+  <circle cx="72" cy="36" r="6" fill="#4A2E1B"/>
+  <!-- Round teacher glasses -->
+  <circle cx="42" cy="39" r="7" fill="none" stroke="#212529" stroke-width="2"/>
+  <circle cx="58" cy="39" r="7" fill="none" stroke="#212529" stroke-width="2"/>
+  <line x1="49" y1="39" x2="51" y2="39" stroke="#212529" stroke-width="2"/>
+  <!-- Eyes behind glasses -->
+  <circle cx="42" cy="39" r="2.5" fill="#212529"/>
+  <circle cx="58" cy="39" r="2.5" fill="#212529"/>
+  <!-- Friendly warm smile -->
+  <path d="M 44 47 Q 50 52 56 47" stroke="#212529" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>
+              </div>
+              <h2 class="role-title">Teacher</h2>
+              <p class="role-desc">Empower students, create quizzes & track progress.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== STEP 2: Tell us about you ==================== -->
+        <section class="step-page" id="step2" aria-labelledby="step2Title">
+          <h1 class="step-heading" id="step2Title">Tell us about you</h1>
+          <div class="step-subheading">
+            <span id="roleBadge" class="role-badge">Student account</span>
+          </div>
+
+          <!-- Grade Selection (Students only, hidden for teachers) -->
+          <div class="form-group" id="gradeSection">
+            <label class="form-label">
+              <span>Grade level</span>
+              <span class="field-hint" style="margin:0;">Select one</span>
+            </label>
+            <div class="grade-btn-group" role="radiogroup" aria-label="Grade selection">
+              <button type="button" class="grade-btn" data-grade="Grade 1">Grade 1</button>
+              <button type="button" class="grade-btn" data-grade="Grade 2">Grade 2</button>
+              <button type="button" class="grade-btn" data-grade="Grade 3">Grade 3</button>
+            </div>
+          </div>
+
+          <!-- Full Name Input -->
+          <div class="form-group">
+            <label for="fullName" class="form-label">Full name</label>
+            <input type="text" id="fullName" class="form-input" placeholder="e.g. Sam Rivera" autocomplete="name" required>
+          </div>
+
+          <!-- Email or Google Toggle -->
+          <div class="form-group">
+            <label class="form-label">Sign in method</label>
+            <div class="auth-toggle-group" role="tablist">
+              <button type="button" id="authModeEmail" class="auth-toggle-btn selected" role="tab" aria-selected="true">
+                ✉️ Email
+              </button>
+              <button type="button" id="authModeGoogle" class="auth-toggle-btn" role="tab" aria-selected="false">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> Google
+              </button>
+            </div>
+
+            <!-- Email Input Field -->
+            <div id="emailInputContainer">
+              <input type="email" id="emailInput" class="form-input" placeholder="e.g. sam@example.com" autocomplete="email">
+            </div>
+
+            <!-- Google Mock Button -->
+            <div id="googleBtnContainer" style="display: none;">
+              <button type="button" id="googleBtn" class="google-mock-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                <span id="googleBtnText">Continue with Google</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Date of Birth (Month, Day, Year) -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Date of birth</span>
+              <span id="dobAgeHint" class="field-hint" style="margin:0;"></span>
+            </label>
+            <div class="dob-grid">
+              <select id="dobMonth" class="dob-select" aria-label="Month">
+                <option value="">Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+
+              <select id="dobDay" class="dob-select" aria-label="Day">
+                <option value="">Day</option>
+              </select>
+
+              <select id="dobYear" class="dob-select" aria-label="Year">
+                <option value="">Year</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Confirmation Checkbox -->
+          <div class="form-group" style="margin-top: 4px;">
+            <label class="checkbox-container">
+              <input type="checkbox" id="confirmCheckbox" class="checkbox-input">
+              <span class="checkbox-custom"></span>
+              <span id="checkboxLabel" class="checkbox-label-text">
+                A parent or guardian knows I'm signing up.
+              </span>
+            </label>
+          </div>
+
+          <!-- Navigation Buttons: Back and Next -->
+          <div class="btn-row">
+            <button type="button" id="step2BackBtn" class="btn-secondary">Back</button>
+            <button type="button" id="step2NextBtn" class="btn-primary">Next</button>
+          </div>
+
+          <!-- Validation Error Message Under the Form -->
+          <div id="step2Error" class="error-box" role="alert">
+            <span>⚠️</span>
+            <span id="step2ErrorMsg"></span>
+          </div>
+        </section>
+
+        <!-- ==================== STEP 3: Choose Username ==================== -->
+        <section class="step-page" id="step3" aria-labelledby="step3Title">
+          <h1 class="step-heading" id="step3Title">Last step: choose a username</h1>
+          <p class="step-subheading">Pick a cool handle for your Playroom adventures.</p>
+
+          <div class="form-group">
+            <label for="usernameInput" class="form-label">Username</label>
+            <input type="text" id="usernameInput" class="form-input" placeholder="e.g. StarGamer42" maxlength="20" autocomplete="username">
+            <p class="field-hint">💡 Don't use your real name. 3 to 20 letters or numbers only.</p>
+          </div>
+
+          <!-- Navigation Buttons: Back and Finish -->
+          <div class="btn-row">
+            <button type="button" id="step3BackBtn" class="btn-secondary">Back</button>
+            <button type="button" id="finishBtn" class="btn-primary">Finish</button>
+          </div>
+
+          <!-- Validation Error Message for Username -->
+          <div id="step3Error" class="error-box" role="alert">
+            <span>⚠️</span>
+            <span id="step3ErrorMsg"></span>
+          </div>
+        </section>
+
+        <!-- ==================== STEP 4: Welcome Screen ==================== -->
+        <section class="step-page" id="stepWelcome" aria-labelledby="welcomeTitle">
+          <div class="welcome-container">
+            <div class="welcome-icon-box" id="welcomeEmoji">🎉</div>
+            <h1 class="welcome-title" id="welcomeTitle">Welcome, Explorer!</h1>
+            <p class="welcome-message" id="welcomeSubtext">Your student account is ready for Grade 2.</p>
+
+            <div class="welcome-summary-card">
+              <div class="summary-row">
+                <span class="summary-label">Account Type</span>
+                <span class="summary-value" id="summaryRole">Student</span>
+              </div>
+              <div class="summary-row" id="summaryGradeRow">
+                <span class="summary-label">Grade</span>
+                <span class="summary-value" id="summaryGrade">Grade 2</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Full Name</span>
+                <span class="summary-value" id="summaryFullName">-</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Username</span>
+                <span class="summary-value" id="summaryUsername">-</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Sign-in Link</span>
+                <span class="summary-value" id="summaryAuth">-</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Calculated Age</span>
+                <span class="summary-value" id="summaryAge">-</span>
+              </div>
+            </div>
+
+            <button type="button" id="startOverBtn" class="btn-primary" style="width: 100%;">
+              Start over
+            </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Left Half Footer / Note -->
+      <footer style="margin-top: auto; padding-top: 16px; text-align: center; font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+        Playroom &copy; 2026 &bull; Safe, interactive learning for every kid
+      </footer>
+
+    </div>
+
+    <!-- 8px GREY VERTICAL DIVIDER -->
+    <div class="vertical-divider" role="separator" aria-orientation="vertical"></div>
+
+    <!-- RIGHT HALF: Teal background with pattern, centered card with base64 image, and tagline -->
+    <div class="right-half">
+      <div class="hero-card">
+        <!-- BASE64 EMBEDDED IMAGE: Row of colorful paper dolls holding hands -->
+        <img 
+          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjAgMjYwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxmaWx0ZXIgaWQ9InBhcGVyLXNoYWRvdyIgeD0iLTEwJSIgeT0iLTEwJSIgd2lkdGg9IjEyMCUiIGhlaWdodD0iMTMwJSIgZmlsdGVyVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPGZlRHJvcFNoYWRvdyBkeD0iMCIgZHk9IjQiIHN0ZERldmlhdGlvbj0iMyIgZmxvb2QtY29sb3I9IiMwMDAwMDAiIGZsb29kLW9wYWNpdHk9IjAuMTIiLz4KICAgIDwvZmlsdGVyPgogICAgPHBhdHRlcm4gaWQ9ImRvbGwtc3RyaXBlcyIgd2lkdGg9IjgiIGhlaWdodD0iOCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxsaW5lIHgxPSIwIiB5MT0iMCIgeDI9IjgiIHkyPSI4IiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zKSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8L3BhdHRlcm4+CiAgICA8cGF0dGVybiBpZD0iZG9sbC1kb3RzIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPGNpcmNsZSBjeD0iNCIgY3k9IjQiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjM1KSIvPgogICAgPC9wYXR0ZXJuPgogIDwvZGVmcz4KCiAgPHN0eWxlPgogICAgLnBhcGVyLWZvbGQgeyBzdHJva2U6IHJnYmEoMCwwLDAsMC4wOCk7IHN0cm9rZS1kYXNoYXJyYXk6IDMgMzsgc3Ryb2tlLXdpZHRoOiAxLjU7IH0KICAgIC5mYWNlLWZlYXR1cmUgeyBmaWxsOiAjMmMzZTUwOyB9CiAgICAuYmx1c2ggeyBmaWxsOiAjZmY3Njc1OyBvcGFjaXR5OiAwLjU7IH0KICA8L3N0eWxlPgoKICA8IS0tIEJhY2tncm91bmQgZGVjb3JhdGl2ZSBlbGVtZW50czogZmFpbnQgY3JhZnQgdGFibGUgc3RpdGNoZXMgLS0+CiAgPHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iNTAwIiBoZWlnaHQ9IjI0MCIgcng9IjE2IiBmaWxsPSIjRkZGOUYyIiBzdHJva2U9IiNFRkU0RDYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWRhc2hhcnJheT0iNiA2Ii8+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI0MCIgcj0iMTQiIGZpbGw9IiNGRkVEQjMiIG9wYWNpdHk9IjAuNiIvPgogIDxwYXRoIGQ9Ik0gNDYwIDMwIFEgNDc1IDIwIDQ5MCAzNSIgc3Ryb2tlPSIjMGJjMmNmIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTSAzMCAyMjAgUSA0NSAyMzUgNjAgMjIwIiBzdHJva2U9IiNGRjZCNkIiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KCiAgPCEtLSBQYXBlciBkb2xsIGRyb3Agc2hhZG93cyBvbiBncm91bmQgLS0+CiAgPGVsbGlwc2UgY3g9IjcwIiBjeT0iMjI1IiByeD0iMzYiIHJ5PSI2IiBmaWxsPSIjMDAwMDAwIiBvcGFjaXR5PSIwLjA4Ii8+CiAgPGVsbGlwc2UgY3g9IjE2MCIgY3k9IjIyNSIgcng9IjM2IiByeT0iNiIgZmlsbD0iIzAwMDAwMCIgb3BhY2l0eT0iMC4wOCIvPgogIDxlbGxpcHNlIGN4PSIyNTAiIGN5PSIyMjUiIHJ4PSIzNiIgcnk9IjYiIGZpbGw9IiMwMDAwMDAiIG9wYWNpdHk9IjAuMDgiLz4KICA8ZWxsaXBzZSBjeD0iMzQwIiBjeT0iMjI1IiByeD0iMzYiIHJ5PSI2IiBmaWxsPSIjMDAwMDAwIiBvcGFjaXR5PSIwLjA4Ii8+CiAgPGVsbGlwc2UgY3g9IjQzMCIgY3k9IjIyNSIgcng9IjM2IiByeT0iNiIgZmlsbD0iIzAwMDAwMCIgb3BhY2l0eT0iMC4wOCIvPgoKICA8IS0tIENPTlRJTlVPVVMgUk9XIE9GIFBBUEVSIERPTExTIEhPTERJTkcgSEFORFMgKENvbm5lY3RlZCBhcm1zISkgLS0+CiAgPGcgaWQ9ImRvbGxzLWdyb3VwIiBmaWx0ZXI9InVybCgjcGFwZXItc2hhZG93KSI+CgogICAgPCEtLSBET0xMIDE6IENvcmFsIFJlZCAvIFBpbmsgKCNGRjVFN0UpIC0tPgogICAgPGcgaWQ9ImRvbGwtMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzAsIDQ1KSI+CiAgICAgIDwhLS0gQXJtIGJyaWRnZSBjb25uZWN0aW5nIHRvIGxlZnQgYm9yZGVyICYgZG9sbCAyIC0tPgogICAgICA8cGF0aCBkPSJNIDEwIDk1IEwgMjUgNzUgTCAzNSA3NSBMIDI1IDExMCBMIDEwIDExMCBaIiBmaWxsPSIjRkY1RTdFIi8+CiAgICAgIDxwYXRoIGQ9Ik0gNTUgNzUgTCA3NSA5NSBMIDkwIDk1IEwgNjUgNzUgWiIgZmlsbD0iI0ZGNUU3RSIvPgogICAgICA8IS0tIEJvZHkgLyBEcmVzcyAtLT4KICAgICAgPHBhdGggZD0iTSAzMCA3MCBMIDYwIDcwIEwgNzUgMTQ1IEwgMTUgMTQ1IFoiIGZpbGw9IiNGRjVFN0UiLz4KICAgICAgPCEtLSBQYXR0ZXJuIG92ZXJsYXkgLS0+CiAgICAgIDxwYXRoIGQ9Ik0gMzAgNzAgTCA2MCA3MCBMIDc1IDE0NSBMIDE1IDE0NSBaIiBmaWxsPSJ1cmwoI2RvbGwtZG90cykiLz4KICAgICAgPCEtLSBMZWdzIC0tPgogICAgICA8cmVjdCB4PSIyNiIgeT0iMTQ1IiB3aWR0aD0iMTIiIGhlaWdodD0iMzIiIHJ4PSI0IiBmaWxsPSIjRkZEMkIyIi8+CiAgICAgIDxyZWN0IHg9IjUyIiB5PSIxNDUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIzMiIgcng9IjQiIGZpbGw9IiNGRkQyQjIiLz4KICAgICAgPCEtLSBTaG9lcyAtLT4KICAgICAgPHBhdGggZD0iTSAyMiAxNzMgQyAyMiAxNjggMzggMTY4IDQwIDE3NyBMIDIyIDE3NyBaIiBmaWxsPSIjRTg0MzY0Ii8+CiAgICAgIDxwYXRoIGQ9Ik0gNDggMTczIEMgNDggMTY4IDY0IDE2OCA2NiAxNzcgTCA0OCAxNzcgWiIgZmlsbD0iI0U4NDM2NCIvPgogICAgICA8IS0tIEhlYWQgJiBIYWlyIC0tPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjM4IiByPSIyMiIgZmlsbD0iI0ZGRDJCMiIvPgogICAgICA8IS0tIEN1dGUgY29yYWwgYnJhaWRlZCBwaWd0YWlscyAtLT4KICAgICAgPGNpcmNsZSBjeD0iMjAiIGN5PSIzNiIgcj0iOSIgZmlsbD0iIzc4MzUwRiIvPgogICAgICA8Y2lyY2xlIGN4PSI3MCIgY3k9IjM2IiByPSI5IiBmaWxsPSIjNzgzNTBGIi8+CiAgICAgIDxwYXRoIGQ9Ik0gMjUgMzUgQyAyNSAxNiA2NSAxNiA2NSAzNSBDIDU1IDI0IDM1IDI0IDI1IDM1IFoiIGZpbGw9IiM3ODM1MEYiLz4KICAgICAgPCEtLSBGYWNlIC0tPgogICAgICA8Y2lyY2xlIGN4PSIzOCIgY3k9IjM3IiByPSIyLjUiIGNsYXNzPSJmYWNlLWZlYXR1cmUiLz4KICAgICAgPGNpcmNsZSBjeD0iNTIiIGN5PSIzNyIgcj0iMi41IiBjbGFzcz0iZmFjZS1mZWF0dXJlIi8+CiAgICAgIDxjaXJjbGUgY3g9IjM0IiBjeT0iNDIiIHI9IjMiIGNsYXNzPSJibHVzaCIvPgogICAgICA8Y2lyY2xlIGN4PSI1NiIgY3k9IjQyIiByPSIzIiBjbGFzcz0iYmx1c2giLz4KICAgICAgPHBhdGggZD0iTSA0MSA0NSBRIDQ1IDQ5IDQ5IDQ1IiBzdHJva2U9IiMyYzNlNTAiIHN0cm9rZS13aWR0aD0iMS44IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgICAgPCEtLSBDdXRvdXQgc3RhciBiYWRnZSBvbiBkcmVzcyAtLT4KICAgICAgPGNpcmNsZSBjeD0iNDUiIGN5PSIxMDUiIHI9IjciIGZpbGw9IiNGRkYzQkYiLz4KICAgIDwvZz4KCiAgICA8IS0tIENPTk5FQ1RJTkcgSEFORCBDTEFTUCAxLTIgLS0+CiAgICA8cGF0aCBkPSJNIDEwNSAxMzggQyAxMTUgMTM0IDEyNSAxMzQgMTM1IDEzOCBDIDEzMCAxNDYgMTEwIDE0NiAxMDUgMTM4IFoiIGZpbGw9IiNGRjVFN0UiLz4KCiAgICA8IS0tIERPTEwgMjogU3Vuc2hpbmUgWWVsbG93IC8gT3JhbmdlICgjRkZCNzAzKSAtLT4KICAgIDxnIGlkPSJkb2xsLTIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyMCwgNDUpIj4KICAgICAgPCEtLSBBcm1zIC0tPgogICAgICA8cGF0aCBkPSJNIDUgOTUgTCAyNSA3NSBMIDM1IDc1IEwgMTUgMTA1IFoiIGZpbGw9IiNGRkI3MDMiLz4KICAgICAgPHBhdGggZD0iTSA1NSA3NSBMIDc1IDk1IEwgOTAgOTUgTCA2NSA3NSBaIiBmaWxsPSIjRkZCNzAzIi8+CiAgICAgIDwhLS0gQm9keSAvIFNoaXJ0ICYgU2hvcnRzIC0tPgogICAgICA8cGF0aCBkPSJNIDMwIDcwIEwgNjAgNzAgTCA2NiAxMTUgTCAyNCAxMTUgWiIgZmlsbD0iI0ZGQjcwMyIvPgogICAgICA8cGF0aCBkPSJNIDI0IDExNSBMIDY2IDExNSBMIDcwIDE0MCBMIDIwIDE0MCBaIiBmaWxsPSIjMUQzNTU3Ii8+CiAgICAgIDwhLS0gTGVncyAtLT4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjE0MCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjM2IiByeD0iNCIgZmlsbD0iI0ZBRDJCMCIvPgogICAgICA8cmVjdCB4PSI1MiIgeT0iMTQwIiB3aWR0aD0iMTIiIGhlaWdodD0iMzYiIHJ4PSI0IiBmaWxsPSIjRkFEMkIwIi8+CiAgICAgIDwhLS0gU2hvZXMgLS0+CiAgICAgIDxyZWN0IHg9IjIyIiB5PSIxNzAiIHdpZHRoPSIxOCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iI0U2Mzk0NiIvPgogICAgICA8cmVjdCB4PSI1MCIgeT0iMTcwIiB3aWR0aD0iMTgiIGhlaWdodD0iOCIgcng9IjQiIGZpbGw9IiNFNjM5NDYiLz4KICAgICAgPCEtLSBIZWFkICYgQ2FwIC0tPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjM4IiByPSIyMiIgZmlsbD0iI0ZBRDJCMCIvPgogICAgICA8cGF0aCBkPSJNIDI0IDM0IEMgMjQgMTYgNjYgMTYgNjYgMzQgWiIgZmlsbD0iI0Q5NzcwNiIvPgogICAgICA8IS0tIENhcCB2aXNvciAtLT4KICAgICAgPHBhdGggZD0iTSAyMiAzNCBMIDcyIDM0IEMgNzYgMzQgNzYgMzggNjggMzkgTCAyNiAzOSBaIiBmaWxsPSIjQjQ1MzA5Ii8+CiAgICAgIDwhLS0gRmFjZSAtLT4KICAgICAgPGNpcmNsZSBjeD0iMzgiIGN5PSI0MCIgcj0iMi41IiBjbGFzcz0iZmFjZS1mZWF0dXJlIi8+CiAgICAgIDxjaXJjbGUgY3g9IjUyIiBjeT0iNDAiIHI9IjIuNSIgY2xhc3M9ImZhY2UtZmVhdHVyZSIvPgogICAgICA8Y2lyY2xlIGN4PSIzNCIgY3k9IjQ1IiByPSIzIiBjbGFzcz0iYmx1c2giLz4KICAgICAgPGNpcmNsZSBjeD0iNTYiIGN5PSI0NSIgcj0iMyIgY2xhc3M9ImJsdXNoIi8+CiAgICAgIDxwYXRoIGQ9Ik0gNDAgNDggUSA0NSA1MyA1MCA0OCIgc3Ryb2tlPSIjMmMzZTUwIiBzdHJva2Utd2lkdGg9IjEuOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgIDwhLS0gUG9ja2V0IGRldGFpbCAtLT4KICAgICAgPHJlY3QgeD0iMzgiIHk9Ijg1IiB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHJ4PSIzIiBmaWxsPSIjRjU5RTBCIiBzdHJva2U9IiNEOTc3MDYiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8L2c+CgogICAgPCEtLSBDT05ORUNUSU5HIEhBTkQgQ0xBU1AgMi0zIC0tPgogICAgPHBhdGggZD0iTSAxOTUgMTM4IEMgMjA1IDEzNCAyMTUgMTM0IDIyNSAxMzggQyAyMjAgMTQ2IDIwMCAxNDYgMTk1IDEzOCBaIiBmaWxsPSIjMEJDMkNGIi8+CgogICAgPCEtLSBET0xMIDM6IENlbnRlciBQbGF5cm9vbSBUZWFsICgjMEJDMkNGKSAtLT4KICAgIDxnIGlkPSJkb2xsLTMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIxMCwgNDApIj4KICAgICAgPCEtLSBTbGlnaHRseSB0YWxsZXIgY2VudGVyIGxlYWRlciBkb2xsIC0tPgogICAgICA8IS0tIEFybXMgLS0+CiAgICAgIDxwYXRoIGQ9Ik0gNSAxMDAgTCAyNSA4MCBMIDM1IDgwIEwgMTUgMTEwIFoiIGZpbGw9IiMwQkMyQ0YiLz4KICAgICAgPHBhdGggZD0iTSA1NSA4MCBMIDc1IDEwMCBMIDkwIDEwMCBMIDY1IDgwIFoiIGZpbGw9IiMwQkMyQ0YiLz4KICAgICAgPCEtLSBCb2R5IC8gT3ZlcmFsbHMgLS0+CiAgICAgIDxwYXRoIGQ9Ik0gMzAgNzUgTCA2MCA3NSBMIDcyIDE1MCBMIDE4IDE1MCBaIiBmaWxsPSIjMEJDMkNGIi8+CiAgICAgIDxwYXRoIGQ9Ik0gMzAgNzUgTCA2MCA3NSBMIDcyIDE1MCBMIDE4IDE1MCBaIiBmaWxsPSJ1cmwoI2RvbGwtc3RyaXBlcykiLz4KICAgICAgPCEtLSBPdmVyYWxscyBzdHJhcHMgLS0+CiAgICAgIDxyZWN0IHg9IjMzIiB5PSI3NSIgd2lkdGg9IjYiIGhlaWdodD0iMjQiIGZpbGw9IiMwODkzOUQiLz4KICAgICAgPHJlY3QgeD0iNTEiIHk9Ijc1IiB3aWR0aD0iNiIgaGVpZ2h0PSIyNCIgZmlsbD0iIzA4OTM5RCIvPgogICAgICA8Y2lyY2xlIGN4PSIzNiIgY3k9Ijk5IiByPSIyIiBmaWxsPSIjRkZGRkZGIi8+CiAgICAgIDxjaXJjbGUgY3g9IjU0IiBjeT0iOTkiIHI9IjIiIGZpbGw9IiNGRkZGRkYiLz4KICAgICAgPCEtLSBMZWdzIC0tPgogICAgICA8cmVjdCB4PSIyNiIgeT0iMTUwIiB3aWR0aD0iMTIiIGhlaWdodD0iMzUiIHJ4PSI0IiBmaWxsPSIjRkZERkM0Ii8+CiAgICAgIDxyZWN0IHg9IjUyIiB5PSIxNTAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIzNSIgcng9IjQiIGZpbGw9IiNGRkRGQzQiLz4KICAgICAgPCEtLSBTaG9lcyAtLT4KICAgICAgPHBhdGggZD0iTSAyMiAxNzggQyAyMiAxNzMgMzggMTczIDQwIDE4MyBMIDIyIDE4MyBaIiBmaWxsPSIjMDg4MzhDIi8+CiAgICAgIDxwYXRoIGQ9Ik0gNDggMTc4IEMgNDggMTczIDY0IDE3MyA2NiAxODMgTCA0OCAxODMgWiIgZmlsbD0iIzA4ODM4QyIvPgogICAgICA8IS0tIEhlYWQgJiBGdW4gSGFpciB3aXRoIFBhcGVyIENyb3duIC0tPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjQwIiByPSIyMyIgZmlsbD0iI0ZGREZDNCIvPgogICAgICA8cGF0aCBkPSJNIDIyIDM2IEMgMjIgMTggNjggMTggNjggMzYgQyA2MCAyNSAzMCAyNSAyMiAzNiBaIiBmaWxsPSIjNEIyODEwIi8+CiAgICAgIDwhLS0gR29sZGVuIHBhcGVyIGNyb3duIC0tPgogICAgICA8cGF0aCBkPSJNIDMwIDE4IEwgMzYgMjggTCA0NSAxNSBMIDU0IDI4IEwgNjAgMTggTCA2MCAyOCBMIDMwIDI4IFoiIGZpbGw9IiNGRkQxNjYiIHN0cm9rZT0iI0Y0QTI2MSIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICAgICAgPCEtLSBGYWNlIC0tPgogICAgICA8Y2lyY2xlIGN4PSIzOCIgY3k9IjQxIiByPSIyLjUiIGNsYXNzPSJmYWNlLWZlYXR1cmUiLz4KICAgICAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0MSIgcj0iMi41IiBjbGFzcz0iZmFjZS1mZWF0dXJlIi8+CiAgICAgIDxjaXJjbGUgY3g9IjMzIiBjeT0iNDYiIHI9IjMuNSIgY2xhc3M9ImJsdXNoIi8+CiAgICAgIDxjaXJjbGUgY3g9IjU3IiBjeT0iNDYiIHI9IjMuNSIgY2xhc3M9ImJsdXNoIi8+CiAgICAgIDwhLS0gQmlnIGNoZWVyZnVsIHNtaWxlIC0tPgogICAgICA8cGF0aCBkPSJNIDM4IDQ4IFEgNDUgNTYgNTIgNDgiIHN0cm9rZT0iIzJjM2U1MCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgICAgPGNpcmNsZSBjeD0iNDUiIGN5PSIxMjAiIHI9IjEwIiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjkiLz4KICAgICAgPHBhdGggZD0iTSA0NSAxMTMgTCA0NyAxMTggTCA1MiAxMTkgTCA0OCAxMjMgTCA0OSAxMjggTCA0NSAxMjUgTCA0MSAxMjggTCA0MiAxMjMgTCAzOCAxMTkgTCA0MyAxMTggWiIgZmlsbD0iIzBCQzJDRiIvPgogICAgPC9nPgoKICAgIDwhLS0gQ09OTkVDVElORyBIQU5EIENMQVNQIDMtNCAtLT4KICAgIDxwYXRoIGQ9Ik0gMjg1IDEzOCBDIDI5NSAxMzQgMzA1IDEzNCAzMTUgMTM4IEMgMzEwIDE0NiAyOTAgMTQ2IDI4NSAxMzggWiIgZmlsbD0iIzlENEVERCIvPgoKICAgIDwhLS0gRE9MTCA0OiBCcmlnaHQgVmlvbGV0IC8gUHVycGxlICgjOUQ0RUREKSAtLT4KICAgIDxnIGlkPSJkb2xsLTQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMwMCwgNDUpIj4KICAgICAgPCEtLSBBcm1zIC0tPgogICAgICA8cGF0aCBkPSJNIDUgOTUgTCAyNSA3NSBMIDM1IDc1IEwgMTUgMTA1IFoiIGZpbGw9IiM5RDRFREQiLz4KICAgICAgPHBhdGggZD0iTSA1NSA3NSBMIDc1IDk1IEwgOTAgOTUgTCA2NSA3NSBaIiBmaWxsPSIjOUQ0RUREIi8+CiAgICAgIDwhLS0gQm9keSAvIERyZXNzIC0tPgogICAgICA8cGF0aCBkPSJNIDMwIDcwIEwgNjAgNzAgTCA3NSAxNDUgTCAxNSAxNDUgWiIgZmlsbD0iIzlENEVERCIvPgogICAgICA8cGF0aCBkPSJNIDMwIDcwIEwgNjAgNzAgTCA3NSAxNDUgTCAxNSAxNDUgWiIgZmlsbD0idXJsKCNkb2xsLWRvdHMpIi8+CiAgICAgIDwhLS0gU2NhbGxvcGVkIGhlbWxpbmUgLS0+CiAgICAgIDxjaXJjbGUgY3g9IjIzIiBjeT0iMTQ1IiByPSI2IiBmaWxsPSIjQzc3REZGIi8+CiAgICAgIDxjaXJjbGUgY3g9IjM0IiBjeT0iMTQ1IiByPSI2IiBmaWxsPSIjQzc3REZGIi8+CiAgICAgIDxjaXJjbGUgY3g9IjQ1IiBjeT0iMTQ1IiByPSI2IiBmaWxsPSIjQzc3REZGIi8+CiAgICAgIDxjaXJjbGUgY3g9IjU2IiBjeT0iMTQ1IiByPSI2IiBmaWxsPSIjQzc3REZGIi8+CiAgICAgIDxjaXJjbGUgY3g9IjY3IiBjeT0iMTQ1IiByPSI2IiBmaWxsPSIjQzc3REZGIi8+CiAgICAgIDwhLS0gTGVncyAtLT4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjE0NSIgd2lkdGg9IjEyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iI0U4QjQ4QSIvPgogICAgICA8cmVjdCB4PSI1MiIgeT0iMTQ1IiB3aWR0aD0iMTIiIGhlaWdodD0iMzIiIHJ4PSI0IiBmaWxsPSIjRThCNDhBIi8+CiAgICAgIDwhLS0gU2hvZXMgLS0+CiAgICAgIDxwYXRoIGQ9Ik0gMjIgMTczIEMgMjIgMTY4IDM4IDE2OCA0MCAxNzcgTCAyMiAxNzcgWiIgZmlsbD0iIzdCMkNCRiIvPgogICAgICA8cGF0aCBkPSJNIDQ4IDE3MyBDIDQ4IDE2OCA2NCAxNjggNjYgMTc3IEwgNDggMTc3IFoiIGZpbGw9IiM3QjJDQkYiLz4KICAgICAgPCEtLSBIZWFkICYgVG9wLWJ1biBIYWlyIC0tPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjM4IiByPSIyMiIgZmlsbD0iI0U4QjQ4QSIvPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjEyIiByPSIxMCIgZmlsbD0iIzJEMTUwMCIvPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjEyIiByPSIxMiIgc3Ryb2tlPSIjRkZEMTY2IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICAgICAgPHBhdGggZD0iTSAyNCAzNCBDIDI0IDE2IDY2IDE2IDY2IDM0IEMgNTUgMjQgMzUgMjQgMjQgMzQgWiIgZmlsbD0iIzJEMTUwMCIvPgogICAgICA8IS0tIEZhY2UgLS0+CiAgICAgIDxjaXJjbGUgY3g9IjM4IiBjeT0iMzgiIHI9IjIuNSIgY2xhc3M9ImZhY2UtZmVhdHVyZSIvPgogICAgICA8Y2lyY2xlIGN4PSI1MiIgY3k9IjM4IiByPSIyLjUiIGNsYXNzPSJmYWNlLWZlYXR1cmUiLz4KICAgICAgPGNpcmNsZSBjeD0iMzQiIGN5PSI0MyIgcj0iMyIgY2xhc3M9ImJsdXNoIi8+CiAgICAgIDxjaXJjbGUgY3g9IjU2IiBjeT0iNDMiIHI9IjMiIGNsYXNzPSJibHVzaCIvPgogICAgICA8cGF0aCBkPSJNIDQxIDQ2IFEgNDUgNTAgNDkgNDYiIHN0cm9rZT0iIzJjM2U1MCIgc3Ryb2tlLXdpZHRoPSIxLjgiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjEwMCIgcj0iNiIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC44Ii8+CiAgICA8L2c+CgogICAgPCEtLSBDT05ORUNUSU5HIEhBTkQgQ0xBU1AgNC01IC0tPgogICAgPHBhdGggZD0iTSAzNzUgMTM4IEMgMzg1IDEzNCAzOTUgMTM0IDQwNSAxMzggQyA0MDAgMTQ2IDM4MCAxNDYgMzc1IDEzOCBaIiBmaWxsPSIjMDZENkEwIi8+CgogICAgPCEtLSBET0xMIDU6IEJyaWdodCBMaW1lIE1pbnQgR3JlZW4gKCMwNkQ2QTApIC0tPgogICAgPGcgaWQ9ImRvbGwtNSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzkwLCA0NSkiPgogICAgICA8IS0tIEFybXMgLS0+CiAgICAgIDxwYXRoIGQ9Ik0gNSA5NSBMIDI1IDc1IEwgMzUgNzUgTCAxNSAxMDUgWiIgZmlsbD0iIzA2RDZBMCIvPgogICAgICA8cGF0aCBkPSJNIDU1IDc1IEwgNzUgOTUgTCA5MCA5NSBMIDY1IDc1IFoiIGZpbGw9IiMwNkQ2QTAiLz4KICAgICAgPCEtLSBCb2R5IC8gSG9vZGllICYgU2hvcnRzIC0tPgogICAgICA8cGF0aCBkPSJNIDI4IDcwIEwgNjIgNzAgTCA2OCAxMTggTCAyMiAxMTggWiIgZmlsbD0iIzA2RDZBMCIvPgogICAgICA8cGF0aCBkPSJNIDIyIDExOCBMIDY4IDExOCBMIDcwIDE0MiBMIDIwIDE0MiBaIiBmaWxsPSIjMTE4QUIyIi8+CiAgICAgIDwhLS0gTGVncyAtLT4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjE0MiIgd2lkdGg9IjEyIiBoZWlnaHQ9IjM0IiByeD0iNCIgZmlsbD0iI0ZBRDJCMCIvPgogICAgICA8cmVjdCB4PSI1MiIgeT0iMTQyIiB3aWR0aD0iMTIiIGhlaWdodD0iMzQiIHJ4PSI0IiBmaWxsPSIjRkFEMkIwIi8+CiAgICAgIDwhLS0gU2hvZXMgLS0+CiAgICAgIDxyZWN0IHg9IjIyIiB5PSIxNzIiIHdpZHRoPSIxOCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iIzA1OTY2OSIvPgogICAgICA8cmVjdCB4PSI1MCIgeT0iMTcyIiB3aWR0aD0iMTgiIGhlaWdodD0iOCIgcng9IjQiIGZpbGw9IiMwNTk2NjkiLz4KICAgICAgPCEtLSBIZWFkICYgQ29vbCBTcGlreSBIYWlyIC0tPgogICAgICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjM4IiByPSIyMiIgZmlsbD0iI0ZBRDJCMCIvPgogICAgICA8IS0tIFNwaWt5IHBsYXlmdWwgaGFpciAtLT4KICAgICAgPHBhdGggZD0iTSAyMiAzNCBMIDI4IDE4IEwgMzYgMjYgTCA0NSAxNiBMIDU0IDI2IEwgNjIgMTggTCA2OCAzNCBaIiBmaWxsPSIjNkIyRDVDIi8+CiAgICAgIDwhLS0gRmFjZSAtLT4KICAgICAgPGNpcmNsZSBjeD0iMzgiIGN5PSIzOSIgcj0iMi41IiBjbGFzcz0iZmFjZS1mZWF0dXJlIi8+CiAgICAgIDxjaXJjbGUgY3g9IjUyIiBjeT0iMzkiIHI9IjIuNSIgY2xhc3M9ImZhY2UtZmVhdHVyZSIvPgogICAgICA8Y2lyY2xlIGN4PSIzNCIgY3k9IjQ0IiByPSIzIiBjbGFzcz0iYmx1c2giLz4KICAgICAgPGNpcmNsZSBjeD0iNTYiIGN5PSI0NCIgcj0iMyIgY2xhc3M9ImJsdXNoIi8+CiAgICAgIDxwYXRoIGQ9Ik0gNDAgNDggUSA0NSA1MiA1MCA0OCIgc3Ryb2tlPSIjMmMzZTUwIiBzdHJva2Utd2lkdGg9IjEuOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgIDwhLS0gQ3V0ZSBzbWlsZXkgYmFkZ2UgLS0+CiAgICAgIDxjaXJjbGUgY3g9IjQ1IiBjeT0iOTQiIHI9IjgiIGZpbGw9IiNGRkQxNjYiLz4KICAgICAgPGNpcmNsZSBjeD0iNDIiIGN5PSI5MyIgcj0iMS4yIiBmaWxsPSIjMmMzZTUwIi8+CiAgICAgIDxjaXJjbGUgY3g9IjQ4IiBjeT0iOTMiIHI9IjEuMiIgZmlsbD0iIzJjM2U1MCIvPgogICAgICA8cGF0aCBkPSJNIDQyIDk2IFEgNDUgOTkgNDggOTYiIHN0cm9rZT0iIzJjM2U1MCIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIi8+CiAgICA8L2c+CgogIDwvZz4KCiAgPCEtLSBBY2NvcmRpb24gcGFwZXIgZm9sZCBsaW5lcyBpbmRpY2F0aW5nIGZvbGRlZCBjcmFmdCBzaGVldCAtLT4KICA8bGluZSB4MT0iMTE3IiB5MT0iNDAiIHgyPSIxMTciIHkyPSIyMzAiIGNsYXNzPSJwYXBlci1mb2xkIi8+CiAgPGxpbmUgeDE9IjIwNyIgeTE9IjQwIiB4Mj0iMjA3IiB5Mj0iMjMwIiBjbGFzcz0icGFwZXItZm9sZCIvPgogIDxsaW5lIHgxPSIyOTciIHkxPSI0MCIgeDI9IjI5NyIgeTI9IjIzMCIgY2xhc3M9InBhcGVyLWZvbGQiLz4KICA8bGluZSB4MT0iMzg3IiB5MT0iNDAiIHgyPSIzODciIHkyPSIyMzAiIGNsYXNzPSJwYXBlci1mb2xkIi8+Cjwvc3ZnPg==" 
+          alt="A row of colorful paper dolls holding hands" 
+          class="hero-image"
+          id="heroDollsImg"
+        >
+      </div>
+
+      <!-- Tagline below card -->
+      <p class="tagline">Leveling up engagement, one question at a time.</p>
+    </div>
+
+  </div>
+
+  <!-- Mock Login Modal -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card">
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;">Welcome Back!</h2>
+      <p style="color: var(--text-muted); font-weight: 600; margin-bottom: 20px;">
+        Already have a Playroom account? Enter your username or email to sign in.
+      </p>
+      <input type="text" class="form-input" placeholder="Username or email" style="margin-bottom: 14px;">
+      <input type="password" class="form-input" placeholder="Password" style="margin-bottom: 18px;">
+      <button type="button" class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="closeLoginModal()">
+        Log in to Playroom
+      </button>
+      <button type="button" class="btn-secondary" style="width: 100%;" onclick="closeLoginModal()">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    (function () {
+      'use strict';
+
+      // Application State
+      const state = {
+        step: 1,
+        role: null,           // 'student' | 'teacher'
+        grade: null,          // 'Grade 1' | 'Grade 2' | 'Grade 3'
+        fullName: '',
+        authMethod: 'email',  // 'email' | 'google'
+        email: '',
+        googleLinked: false,
+        birthDate: {
+          month: null,
+          day: null,
+          year: null,
+          age: null
+        },
+        confirmed: false,
+        username: ''
+      };
+
+      // Populate Days (1 - 31) and Years (current down to 100 years back)
+      const daySelect = document.getElementById('dobDay');
+      for (let d = 1; d <= 31; d++) {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        daySelect.appendChild(opt);
+      }
+
+      const yearSelect = document.getElementById('dobYear');
+      const currentYear = new Date().getFullYear();
+      for (let y = currentYear; y >= currentYear - 100; y--) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+      }
+
+      // DOM Elements
+      const studentCard = document.getElementById('studentCard');
+      const teacherCard = document.getElementById('teacherCard');
+
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      const stepWelcome = document.getElementById('stepWelcome');
+
+      const progBar1 = document.getElementById('progBar1');
+      const progBar2 = document.getElementById('progBar2');
+      const progBar3 = document.getElementById('progBar3');
+
+      const roleBadge = document.getElementById('roleBadge');
+      const gradeSection = document.getElementById('gradeSection');
+      const gradeButtons = document.querySelectorAll('.grade-btn');
+      const fullNameInput = document.getElementById('fullName');
+
+      const authModeEmail = document.getElementById('authModeEmail');
+      const authModeGoogle = document.getElementById('authModeGoogle');
+      const emailInputContainer = document.getElementById('emailInputContainer');
+      const emailInput = document.getElementById('emailInput');
+      const googleBtnContainer = document.getElementById('googleBtnContainer');
+      const googleBtn = document.getElementById('googleBtn');
+      const googleBtnText = document.getElementById('googleBtnText');
+
+      const dobMonth = document.getElementById('dobMonth');
+      const dobDay = document.getElementById('dobDay');
+      const dobYear = document.getElementById('dobYear');
+      const dobAgeHint = document.getElementById('dobAgeHint');
+
+      const confirmCheckbox = document.getElementById('confirmCheckbox');
+      const checkboxLabel = document.getElementById('checkboxLabel');
+
+      const step2BackBtn = document.getElementById('step2BackBtn');
+      const step2NextBtn = document.getElementById('step2NextBtn');
+      const step2Error = document.getElementById('step2Error');
+      const step2ErrorMsg = document.getElementById('step2ErrorMsg');
+
+      const usernameInput = document.getElementById('usernameInput');
+      const step3BackBtn = document.getElementById('step3BackBtn');
+      const finishBtn = document.getElementById('finishBtn');
+      const step3Error = document.getElementById('step3Error');
+      const step3ErrorMsg = document.getElementById('step3ErrorMsg');
+
+      const startOverBtn = document.getElementById('startOverBtn');
+
+      // Theme toggle setup
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+
+      function initTheme() {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem('playroom_theme');
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          themeIcon.textContent = '☀️';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          themeIcon.textContent = '🌙';
+        }
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        if (current === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          themeIcon.textContent = '🌙';
+          localStorage.setItem('playroom_theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          themeIcon.textContent = '☀️';
+          localStorage.setItem('playroom_theme', 'dark');
+        }
+      });
+
+      initTheme();
+
+      // Login Modal Mock
+      const loginBtn = document.getElementById('loginBtn');
+      const loginModal = document.getElementById('loginModal');
+
+      window.closeLoginModal = function () {
+        loginModal.classList.remove('active');
+      };
+
+      loginBtn.addEventListener('click', () => {
+        loginModal.classList.add('active');
+      });
+
+      loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+          closeLoginModal();
+        }
+      });
+
+      // Progress bar updater
+      function updateProgressBar(step) {
+        progBar1.classList.remove('active');
+        progBar2.classList.remove('active');
+        progBar3.classList.remove('active');
+
+        if (step >= 1) progBar1.classList.add('active');
+        if (step >= 2) progBar2.classList.add('active');
+        if (step >= 3) progBar3.classList.add('active');
+      }
+
+      // Step Navigation Helper
+      function goToStep(targetStep) {
+        state.step = targetStep;
+
+        step1.classList.remove('active');
+        step2.classList.remove('active');
+        step3.classList.remove('active');
+        stepWelcome.classList.remove('active');
+
+        // Reset errors
+        step2Error.classList.remove('active');
+        step3Error.classList.remove('active');
+
+        if (targetStep === 1) {
+          step1.classList.add('active');
+          updateProgressBar(1);
+        } else if (targetStep === 2) {
+          step2.classList.add('active');
+          updateProgressBar(2);
+          setupStep2View();
+        } else if (targetStep === 3) {
+          step3.classList.add('active');
+          updateProgressBar(3);
+          usernameInput.focus();
+        } else if (targetStep === 4) {
+          stepWelcome.classList.add('active');
+          updateProgressBar(3);
+          renderWelcomeScreen();
+        }
+      }
+
+      // PAGE 1: Select Role
+      function selectRole(role) {
+        state.role = role;
+        goToStep(2);
+      }
+
+      studentCard.addEventListener('click', () => selectRole('student'));
+      studentCard.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectRole('student');
+        }
+      });
+
+      teacherCard.addEventListener('click', () => selectRole('teacher'));
+      teacherCard.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectRole('teacher');
+        }
+      });
+
+      // PAGE 2 Setup View based on Role
+      function setupStep2View() {
+        if (state.role === 'student') {
+          roleBadge.textContent = 'Student account';
+          gradeSection.style.display = 'flex';
+          checkboxLabel.textContent = "A parent or guardian knows I'm signing up.";
+          dobAgeHint.textContent = "(Age 5–12)";
+        } else {
+          roleBadge.textContent = 'Teacher account';
+          gradeSection.style.display = 'none';
+          state.grade = null; // Teachers don't choose a grade
+          checkboxLabel.textContent = "I confirm I am 18 or older.";
+          dobAgeHint.textContent = "(Age 18+)";
+        }
+      }
+
+      // Grade Buttons Selection
+      gradeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          gradeButtons.forEach((b) => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          state.grade = btn.getAttribute('data-grade');
+          step2Error.classList.remove('active');
+        });
+      });
+
+      // Email vs Google Toggle
+      authModeEmail.addEventListener('click', () => {
+        state.authMethod = 'email';
+        authModeEmail.classList.add('selected');
+        authModeEmail.setAttribute('aria-selected', 'true');
+        authModeGoogle.classList.remove('selected');
+        authModeGoogle.setAttribute('aria-selected', 'false');
+
+        emailInputContainer.style.display = 'block';
+        googleBtnContainer.style.display = 'none';
+        step2Error.classList.remove('active');
+      });
+
+      authModeGoogle.addEventListener('click', () => {
+        state.authMethod = 'google';
+        authModeGoogle.classList.add('selected');
+        authModeGoogle.setAttribute('aria-selected', 'true');
+        authModeEmail.classList.remove('selected');
+        authModeEmail.setAttribute('aria-selected', 'false');
+
+        emailInputContainer.style.display = 'none';
+        googleBtnContainer.style.display = 'block';
+        step2Error.classList.remove('active');
+      });
+
+      // Mock Google Link action
+      googleBtn.addEventListener('click', () => {
+        state.googleLinked = true;
+        googleBtn.classList.add('linked');
+        googleBtnText.textContent = 'Google account linked ✓';
+        step2Error.classList.remove('active');
+      });
+
+      // Step 2 Back Button
+      step2BackBtn.addEventListener('click', () => {
+        goToStep(1);
+      });
+
+      // Date validation and age calculation
+      function validateBirthDate(month, day, year, role) {
+        const m = parseInt(month, 10);
+        const d = parseInt(day, 10);
+        const y = parseInt(year, 10);
+
+        if (!m || !d || !y) {
+          return { valid: false, message: 'Please select your complete date of birth (Month, Day, and Year).' };
+        }
+
+        // Real calendar date check (catches Feb 30, Feb 31, April 31, leap years, etc.)
+        const dateObj = new Date(y, m - 1, d);
+        if (
+          dateObj.getFullYear() !== y ||
+          dateObj.getMonth() !== (m - 1) ||
+          dateObj.getDate() !== d
+        ) {
+          return { valid: false, message: 'That is not a real calendar date (for example, February 30th does not exist). Please select a valid date.' };
+        }
+
+        // Calculate Age accurately
+        const today = new Date();
+        if (dateObj > today) {
+          return { valid: false, message: 'Date of birth cannot be in the future.' };
+        }
+
+        let age = today.getFullYear() - y;
+        const monthDiff = today.getMonth() - (m - 1);
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < d)) {
+          age--;
+        }
+
+        if (role === 'student') {
+          if (age < 5 || age > 12) {
+            return {
+              valid: false,
+              message: `Student accounts are for ages 5 to 12. Your calculated age is ${age} years old.`
+            };
+          }
+        } else if (role === 'teacher') {
+          if (age < 18) {
+            return {
+              valid: false,
+              message: `Teacher accounts require you to be 18 or older. Your calculated age is ${age} years old.`
+            };
+          }
+        }
+
+        return { valid: true, age: age, dateObj: dateObj };
+      }
+
+      // Step 2 Validation on "Next"
+      step2NextBtn.addEventListener('click', () => {
+        // 1. Grade check for students
+        if (state.role === 'student' && !state.grade) {
+          showStep2Error('Please select a grade level (Grade 1, Grade 2, or Grade 3).');
+          return;
+        }
+
+        // 2. Full name check (first and last name)
+        const rawName = fullNameInput.value.trim();
+        const nameTokens = rawName.split(/\s+/).filter(Boolean);
+        if (nameTokens.length < 2) {
+          showStep2Error('Please enter both your first and last name.');
+          fullNameInput.focus();
+          return;
+        }
+        state.fullName = rawName;
+
+        // 3. Email or Google check
+        if (state.authMethod === 'email') {
+          const emailVal = emailInput.value.trim();
+          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailPattern.test(emailVal)) {
+            showStep2Error('Please enter a valid email address (e.g. name@example.com).');
+            emailInput.focus();
+            return;
+          }
+          state.email = emailVal;
+        } else {
+          if (!state.googleLinked) {
+            showStep2Error("Please click 'Continue with Google' to link your Google account.");
+            googleBtn.focus();
+            return;
+          }
+        }
+
+        // 4. Date of birth & Age validation
+        const dobResult = validateBirthDate(dobMonth.value, dobDay.value, dobYear.value, state.role);
+        if (!dobResult.valid) {
+          showStep2Error(dobResult.message);
+          return;
+        }
+        state.birthDate.month = dobMonth.value;
+        state.birthDate.day = dobDay.value;
+        state.birthDate.year = dobYear.value;
+        state.birthDate.age = dobResult.age;
+
+        // 5. Confirmation Checkbox
+        if (!confirmCheckbox.checked) {
+          if (state.role === 'student') {
+            showStep2Error("Please confirm that a parent or guardian knows you're signing up.");
+          } else {
+            showStep2Error("Please confirm that you are 18 or older.");
+          }
+          confirmCheckbox.focus();
+          return;
+        }
+        state.confirmed = true;
+
+        // Everything valid -> advance to Step 3
+        step2Error.classList.remove('active');
+        goToStep(3);
+      });
+
+      function showStep2Error(msg) {
+        step2ErrorMsg.textContent = msg;
+        step2Error.classList.remove('active');
+        void step2Error.offsetWidth; // trigger reflow for shake animation
+        step2Error.classList.add('active');
+      }
+
+      // Step 3 Back Button
+      step3BackBtn.addEventListener('click', () => {
+        goToStep(2);
+      });
+
+      // Step 3 Finish Button & Username Validation
+      finishBtn.addEventListener('click', () => {
+        const uVal = usernameInput.value.trim();
+        // 3 to 20 letters or numbers only
+        const usernamePattern = /^[a-zA-Z0-9]{3,20}$/;
+
+        if (!usernamePattern.test(uVal)) {
+          showStep3Error('Username must be 3 to 20 characters long and contain only letters and numbers (no spaces or special symbols).');
+          usernameInput.focus();
+          return;
+        }
+
+        state.username = uVal;
+        step3Error.classList.remove('active');
+        goToStep(4);
+      });
+
+      function showStep3Error(msg) {
+        step3ErrorMsg.textContent = msg;
+        step3Error.classList.remove('active');
+        void step3Error.offsetWidth;
+        step3Error.classList.add('active');
+      }
+
+      // PAGE 4: Render Welcome Screen
+      function renderWelcomeScreen() {
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeSubtext = document.getElementById('welcomeSubtext');
+        const summaryRole = document.getElementById('summaryRole');
+        const summaryGradeRow = document.getElementById('summaryGradeRow');
+        const summaryGrade = document.getElementById('summaryGrade');
+        const summaryFullName = document.getElementById('summaryFullName');
+        const summaryUsername = document.getElementById('summaryUsername');
+        const summaryAuth = document.getElementById('summaryAuth');
+        const summaryAge = document.getElementById('summaryAge');
+
+        welcomeTitle.textContent = `Welcome, ${state.username}!`;
+
+        if (state.role === 'student') {
+          welcomeSubtext.textContent = `Your student account is ready for ${state.grade || 'Grade 2'}.`;
+          summaryRole.textContent = 'Student';
+          summaryGradeRow.style.display = 'flex';
+          summaryGrade.textContent = state.grade || 'Grade 2';
+        } else {
+          welcomeSubtext.textContent = 'Your teacher account is ready.';
+          summaryRole.textContent = 'Teacher';
+          summaryGradeRow.style.display = 'none';
+        }
+
+        summaryFullName.textContent = state.fullName;
+        summaryUsername.textContent = `@${state.username}`;
+        summaryAuth.textContent = state.authMethod === 'email' ? state.email : 'Google Account (Linked)';
+        summaryAge.textContent = `${state.birthDate.age} years old`;
+      }
+
+      // Start Over button: resets form state and returns to page 1
+      startOverBtn.addEventListener('click', () => {
+        state.role = null;
+        state.grade = null;
+        state.fullName = '';
+        state.authMethod = 'email';
+        state.email = '';
+        state.googleLinked = false;
+        state.birthDate = { month: null, day: null, year: null, age: null };
+        state.confirmed = false;
+        state.username = '';
+
+        // Reset inputs
+        fullNameInput.value = '';
+        emailInput.value = '';
+        usernameInput.value = '';
+        dobMonth.value = '';
+        dobDay.value = '';
+        dobYear.value = '';
+        confirmCheckbox.checked = false;
+
+        gradeButtons.forEach((b) => b.classList.remove('selected'));
+        authModeEmail.click();
+        googleBtn.classList.remove('linked');
+        googleBtnText.textContent = 'Continue with Google';
+
+        goToStep(1);
+      });
+
+    })();
+  </script>
+</body>
+</html>
