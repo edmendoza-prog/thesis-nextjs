@@ -92,22 +92,6 @@ export async function POST(request: Request) {
       classId = Number((createRes as InsertResult).insertId || 0);
     }
 
-    // 2. Resolve teacher reference (in case teachers table exists with FK)
-    try {
-      await pool.query('INSERT IGNORE INTO teachers (user_id) VALUES (?)', [userId]);
-    } catch {
-      // Ignore if table does not exist
-    }
-
-    let teacherRefId = userId;
-    try {
-      const [tRows] = await pool.query('SELECT id FROM teachers WHERE user_id = ? LIMIT 1', [userId]);
-      if ((tRows as DbRow[])[0]?.id) {
-        teacherRefId = Number((tRows as DbRow[])[0].id);
-      }
-    } catch {
-      teacherRefId = userId;
-    }
 
     // 3. Insert live_games
     let gameId = 0;

@@ -454,7 +454,7 @@ function StudentDashboardContent() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch { }
-    router.push("/login");
+    router.push("/login/student");
   };
 
   useEffect(() => {

@@ -25,7 +25,7 @@ export default function SimpleCta() {
               Get Started as Teacher →
             </Link>
             <Link
-              href="/login"
+              href="/login/teacher"
               className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-all border border-white/20"
             >
               Sign In

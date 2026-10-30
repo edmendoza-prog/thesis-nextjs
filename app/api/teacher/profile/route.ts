@@ -34,7 +34,7 @@ export async function GET() {
     const [rows] = await pool.query(`
       SELECT u.id AS user_id, u.name, u.email, u.employee_id, u.department, u.designation, u.bio, u.avatar_seed
       FROM users u
-      WHERE u.id = ? AND u.user_type = 'teacher'
+      WHERE u.id = ? AND u.user_type IN ('teacher', 'admin')
       LIMIT 1
     `, [userId]);
 
@@ -96,9 +96,23 @@ export async function POST(request: Request) {
       ]
     );
 
-    return NextResponse.json({ success: true, avatarSeed });
-  } catch (error) {
+    const updatedProfile: TeacherProfile = {
+      id: userId,
+      name,
+      email,
+      employeeId: String(body.employeeId ?? '').trim(),
+      department: String(body.department ?? '').trim(),
+      designation: String(body.designation ?? '').trim(),
+      bio: String(body.bio ?? '').trim(),
+      avatarSeed: avatarSeed || undefined,
+    };
+
+    return NextResponse.json({ success: true, avatarSeed, profile: updatedProfile });
+  } catch (error: any) {
     console.error('Teacher profile save error:', error);
+    if (error?.code === 'ER_DUP_ENTRY') {
+      return NextResponse.json({ error: 'This email address is already in use by another account' }, { status: 409 });
+    }
     return NextResponse.json({ error: 'Unable to save teacher profile' }, { status: 500 });
   }
 }

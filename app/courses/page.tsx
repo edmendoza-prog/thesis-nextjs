@@ -291,7 +291,7 @@ export default function CoursesPage() {
                     <span>{course.units} Quarterly Units</span>
                   </div>
 
-                  <Link href="/login?role=student">
+                  <Link href="/login/student">
                     <button className="bg-[#881337] hover:bg-[#9F1239] text-white font-bold py-2 px-4 rounded-lg transition-colors cursor-pointer">
                       Enter Subject Portal
                     </button>
@@ -319,7 +319,7 @@ export default function CoursesPage() {
               </div>
             </div>
             <Link
-              href="/login?role=teacher"
+              href="/login/teacher"
               className="text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg transition-colors shrink-0"
             >
               Teacher Curriculum Editor

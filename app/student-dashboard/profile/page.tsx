@@ -302,7 +302,7 @@ export default function StudentProfilePage() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {}
-    router.push('/login');
+    router.push('/login/student');
   };
 
   const effectiveAvatarSeed =

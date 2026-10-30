@@ -16,9 +16,6 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-xs font-semibold">
-            <Link href="/login" className="hover:text-white transition-colors">
-              Log in
-            </Link>
             <Link href="/login/teacher" className="hover:text-white transition-colors">
               Teacher Workspace
             </Link>
@@ -26,7 +23,7 @@ export default function Footer() {
               Student Portal
             </Link>
             <Link
-              href="/login"
+              href="/login/teacher"
               className="text-sky-400 hover:text-white transition-colors"
             >
               Help &amp; Support

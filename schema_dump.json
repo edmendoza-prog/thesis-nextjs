@@ -263,73 +263,6 @@ TABLE attendance
     "Extra": "on update current_timestamp()"
   }
 ]
-TABLE audit_logs
-[
-  {
-    "Field": "id",
-    "Type": "int(11)",
-    "Null": "NO",
-    "Key": "PRI",
-    "Default": null,
-    "Extra": "auto_increment"
-  },
-  {
-    "Field": "table_name",
-    "Type": "varchar(100)",
-    "Null": "NO",
-    "Key": "MUL",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "record_id",
-    "Type": "int(11)",
-    "Null": "NO",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "action",
-    "Type": "varchar(50)",
-    "Null": "NO",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "old_value",
-    "Type": "longtext",
-    "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "new_value",
-    "Type": "longtext",
-    "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "changed_by",
-    "Type": "int(11)",
-    "Null": "YES",
-    "Key": "MUL",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "changed_at",
-    "Type": "timestamp",
-    "Null": "NO",
-    "Key": "",
-    "Default": "current_timestamp()",
-    "Extra": ""
-  }
-]
 TABLE badges
 [
   {
@@ -368,81 +301,6 @@ TABLE badges
     "Field": "criteria",
     "Type": "longtext",
     "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "created_at",
-    "Type": "timestamp",
-    "Null": "NO",
-    "Key": "",
-    "Default": "current_timestamp()",
-    "Extra": ""
-  }
-]
-TABLE class_recordings
-[
-  {
-    "Field": "id",
-    "Type": "int(11)",
-    "Null": "NO",
-    "Key": "PRI",
-    "Default": null,
-    "Extra": "auto_increment"
-  },
-  {
-    "Field": "class_id",
-    "Type": "int(11)",
-    "Null": "NO",
-    "Key": "MUL",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "title",
-    "Type": "varchar(255)",
-    "Null": "NO",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "topic",
-    "Type": "varchar(255)",
-    "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "description",
-    "Type": "text",
-    "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "recording_url",
-    "Type": "varchar(255)",
-    "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "duration_minutes",
-    "Type": "int(11)",
-    "Null": "YES",
-    "Key": "",
-    "Default": null,
-    "Extra": ""
-  },
-  {
-    "Field": "recorded_at",
-    "Type": "datetime",
-    "Null": "NO",
     "Key": "",
     "Default": null,
     "Extra": ""
@@ -509,6 +367,148 @@ TABLE classes
   {
     "Field": "deleted_at",
     "Type": "timestamp",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  }
+]
+TABLE lesson_reads
+[
+  {
+    "Field": "id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "PRI",
+    "Default": null,
+    "Extra": "auto_increment"
+  },
+  {
+    "Field": "lesson_id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "MUL",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "student_id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "MUL",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "read_at",
+    "Type": "timestamp",
+    "Null": "NO",
+    "Key": "",
+    "Default": "current_timestamp()",
+    "Extra": ""
+  }
+]
+TABLE lessons
+[
+  {
+    "Field": "id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "PRI",
+    "Default": null,
+    "Extra": "auto_increment"
+  },
+  {
+    "Field": "class_id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "MUL",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "title",
+    "Type": "varchar(255)",
+    "Null": "NO",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "file_name",
+    "Type": "varchar(255)",
+    "Null": "NO",
+    "Key": "",
+    "Default": "lesson-material.pdf",
+    "Extra": ""
+  },
+  {
+    "Field": "file_type",
+    "Type": "enum('pdf','slides','video','doc')",
+    "Null": "NO",
+    "Key": "",
+    "Default": "pdf",
+    "Extra": ""
+  },
+  {
+    "Field": "file_url",
+    "Type": "text",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "pages_or_duration",
+    "Type": "varchar(100)",
+    "Null": "NO",
+    "Key": "",
+    "Default": "10 pages",
+    "Extra": ""
+  },
+  {
+    "Field": "notes",
+    "Type": "text",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "is_visible",
+    "Type": "tinyint(1)",
+    "Null": "NO",
+    "Key": "MUL",
+    "Default": "1",
+    "Extra": ""
+  },
+  {
+    "Field": "created_by_user_id",
+    "Type": "int(11)",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "created_at",
+    "Type": "timestamp",
+    "Null": "NO",
+    "Key": "",
+    "Default": "current_timestamp()",
+    "Extra": ""
+  },
+  {
+    "Field": "updated_at",
+    "Type": "timestamp",
+    "Null": "NO",
+    "Key": "",
+    "Default": "current_timestamp()",
+    "Extra": "on update current_timestamp()"
+  },
+  {
+    "Field": "bg_image",
+    "Type": "text",
     "Null": "YES",
     "Key": "",
     "Default": null,
@@ -586,6 +586,14 @@ TABLE live_games
   },
   {
     "Field": "class_id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "MUL",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "teacher_id",
     "Type": "int(11)",
     "Null": "NO",
     "Key": "MUL",
@@ -671,14 +679,6 @@ TABLE live_games
     "Key": "",
     "Default": "current_timestamp()",
     "Extra": "on update current_timestamp()"
-  },
-  {
-    "Field": "teacher_id",
-    "Type": "int(11)",
-    "Null": "NO",
-    "Key": "MUL",
-    "Default": null,
-    "Extra": ""
   }
 ]
 TABLE schema_migrations
@@ -770,6 +770,14 @@ TABLE student_enrollments
     "Extra": ""
   },
   {
+    "Field": "enrolled_by",
+    "Type": "int(11)",
+    "Null": "YES",
+    "Key": "MUL",
+    "Default": null,
+    "Extra": ""
+  },
+  {
     "Field": "enrolled_at",
     "Type": "timestamp",
     "Null": "NO",
@@ -784,14 +792,41 @@ TABLE student_enrollments
     "Key": "",
     "Default": "active",
     "Extra": ""
+  }
+]
+TABLE student_notification_reads
+[
+  {
+    "Field": "id",
+    "Type": "int(11)",
+    "Null": "NO",
+    "Key": "PRI",
+    "Default": null,
+    "Extra": "auto_increment"
   },
   {
-    "Field": "active_student_guard",
+    "Field": "student_id",
     "Type": "int(11)",
-    "Null": "YES",
-    "Key": "UNI",
+    "Null": "NO",
+    "Key": "MUL",
     "Default": null,
-    "Extra": "VIRTUAL GENERATED"
+    "Extra": ""
+  },
+  {
+    "Field": "notification_key",
+    "Type": "varchar(191)",
+    "Null": "NO",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "read_at",
+    "Type": "timestamp",
+    "Null": "NO",
+    "Key": "",
+    "Default": "current_timestamp()",
+    "Extra": ""
   }
 ]
 TABLE users
@@ -954,6 +989,22 @@ TABLE users
     "Null": "YES",
     "Key": "",
     "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "avatar_seed",
+    "Type": "varchar(100)",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "life_span",
+    "Type": "int(11)",
+    "Null": "YES",
+    "Key": "",
+    "Default": "100",
     "Extra": ""
   }
 ]

@@ -65,14 +65,6 @@ export default function FinalCta() {
                   <i className="ri-gamepad-line text-lg text-amber-300" aria-hidden="true" />
                   <span>Student Portal</span>
                 </Link>
-
-                <Link
-                  href="/login"
-                  id="final-cta-login"
-                  className="text-xs font-bold text-slate-300 transition-colors hover:text-white underline underline-offset-4"
-                >
-                  General Login →
-                </Link>
               </div>
 
               {/* Reassurance pills */}

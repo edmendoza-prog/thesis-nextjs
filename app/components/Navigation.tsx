@@ -2,7 +2,13 @@
 
 import Link from 'next/link';
 
-export function GoLearningLogo({ inverted = false }: { inverted?: boolean }) {
+export function GoLearningLogo({
+  inverted = false,
+  subtitle = 'Teacher Workspace',
+}: {
+  inverted?: boolean;
+  subtitle?: string;
+}) {
   return (
     <span className="flex items-center gap-2.5">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-xs">
@@ -19,7 +25,7 @@ export function GoLearningLogo({ inverted = false }: { inverted?: boolean }) {
           GO Learning
         </span>
         <span className={`text-[11px] font-medium ${inverted ? 'text-slate-300' : 'text-slate-500'}`}>
-          Teacher Workspace
+          {subtitle}
         </span>
       </span>
     </span>
@@ -29,27 +35,27 @@ export function GoLearningLogo({ inverted = false }: { inverted?: boolean }) {
 export default function Navigation() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="w-full px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         {/* Simple Brand */}
-        <Link href="/" aria-label="GO Learning home">
+        <Link href="/" aria-label="GO Learning home" className="shrink-0">
           <GoLearningLogo />
         </Link>
 
-        {/* Simple Navbar Actions: Log in & Sign Up */}
-        <div className="flex items-center gap-3">
+        {/* Right Navbar Actions: Student Portal & Teacher Workspace */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
-            href="/login"
+            href="/login/student"
             id="nav-login"
-            className="text-sm font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 transition-colors"
+            className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
           >
-            Log in
+            Student Portal
           </Link>
           <Link
             href="/login/teacher"
             id="nav-signup"
-            className="text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 px-4 py-2 rounded-xl transition-colors shadow-xs"
+            className="text-xs sm:text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 px-3.5 sm:px-4 py-2 rounded-xl transition-colors shadow-xs"
           >
-            Sign Up
+            Teacher Workspace
           </Link>
         </div>
       </div>

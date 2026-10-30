@@ -120,12 +120,12 @@ export default function FeaturesSection() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <Link href="/login?role=student">
+            <Link href="/login/student">
               <button className="bg-[#881337] hover:bg-[#9F1239] text-white font-bold py-3 px-6 rounded-lg text-xs sm:text-sm transition-colors cursor-pointer shadow-xs">
                 Student Portal
               </button>
             </Link>
-            <Link href="/login?role=teacher">
+            <Link href="/login/teacher">
               <button className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-3 px-6 rounded-lg text-xs sm:text-sm transition-colors cursor-pointer">
                 Teacher Workspace
               </button>

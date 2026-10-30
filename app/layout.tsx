@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, Nunito } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Nunito, Titan_One } from "next/font/google";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -20,6 +20,13 @@ const nunito = Nunito({
   display: "swap",
 });
 
+const titanOne = Titan_One({
+  weight: "400",
+  variable: "--font-titan",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Go Learning - Digital Learning & Classroom Management",
   description: "A modern, professional learning management platform for students and educators.",
@@ -29,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${inter.variable} ${nunito.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${inter.variable} ${nunito.variable} ${titanOne.variable} h-full antialiased`}
     >
       <head>
         <link

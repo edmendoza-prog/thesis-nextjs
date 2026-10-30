@@ -31,10 +31,10 @@ export default function SimpleHero() {
             <span>→</span>
           </Link>
           <Link
-            href="/login"
+            href="/login/student"
             className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-all"
           >
-            Sign In
+            Student Portal
           </Link>
         </div>
 

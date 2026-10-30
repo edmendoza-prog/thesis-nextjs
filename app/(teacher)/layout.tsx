@@ -138,6 +138,17 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 1. Instant optimistic load from localStorage to prevent layout flicker
+    try {
+      const cached = localStorage.getItem('teacher_profile');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.name) setTeacherName(parsed.name);
+        if (parsed.email) setTeacherEmail(parsed.email);
+        if (parsed.avatarSeed) setTeacherAvatar(parsed.avatarSeed);
+      }
+    } catch {}
+
     async function loadTeacherProfile() {
       try {
         const response = await fetch('/api/teacher/profile');
@@ -155,13 +166,39 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
           if (data.profile.avatarSeed) {
             setTeacherAvatar(data.profile.avatarSeed);
           }
+          try {
+            localStorage.setItem(
+              'teacher_profile',
+              JSON.stringify({
+                name: data.profile.name,
+                email: data.profile.email,
+                avatarSeed: data.profile.avatarSeed,
+              })
+            );
+          } catch {}
         }
       } catch {
         // Fallback to default
       }
     }
+
     loadTeacherProfile();
-  }, [router]);
+
+    const handleProfileUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail) {
+        if (customEvent.detail.name) setTeacherName(customEvent.detail.name);
+        if (customEvent.detail.email) setTeacherEmail(customEvent.detail.email);
+        if (customEvent.detail.avatarSeed) setTeacherAvatar(customEvent.detail.avatarSeed);
+      }
+      loadTeacherProfile();
+    };
+
+    window.addEventListener('teacher-profile-updated', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('teacher-profile-updated', handleProfileUpdate);
+    };
+  }, [pathname]);
 
   // Click outside and escape key listeners for dropdowns
   useEffect(() => {
@@ -198,7 +235,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
     } catch {
       // ignore
     }
-    router.push('/login');
+    router.push('/login/teacher');
   };
 
   const initials = teacherName
@@ -265,27 +302,6 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
           );
         })}
       </nav>
-
-      {/* Teacher profile at the bottom of sidebar */}
-      <div className="border-t border-slate-800/80 p-3 bg-slate-950">
-        <Link
-          href="/profile"
-          className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-slate-900 group"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 border border-slate-700 overflow-hidden shadow-inner">
-            <UserAvatar seed={teacherAvatar || teacherName || 'Teacher'} size={40} className="w-full h-full" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-white truncate group-hover:text-indigo-300 transition-colors">
-              {teacherName}
-            </p>
-            <p className="text-[11px] font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Teacher Workspace
-            </p>
-          </div>
-        </Link>
-      </div>
     </div>
   );
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import UserAvatar from '@/app/components/UserAvatar';
 import AvatarPickerModal from '@/app/components/AvatarPickerModal';
 
@@ -18,6 +19,7 @@ type Profile = {
 const emptyProfile: Profile = { name: '', email: '', employeeId: '', department: '', designation: '', bio: '', avatarSeed: '' };
 
 export default function TeacherProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,7 +32,21 @@ export default function TeacherProfilePage() {
         const response = await fetch('/api/teacher/profile');
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Unable to load profile');
-        setProfile(data.profile ?? emptyProfile);
+        const loadedProfile = data.profile ?? emptyProfile;
+        setProfile(loadedProfile);
+
+        if (loadedProfile.name) {
+          try {
+            localStorage.setItem(
+              'teacher_profile',
+              JSON.stringify({
+                name: loadedProfile.name,
+                email: loadedProfile.email,
+                avatarSeed: loadedProfile.avatarSeed,
+              })
+            );
+          } catch {}
+        }
       } catch (error) {
         console.error('Profile fetch error:', error);
       } finally {
@@ -60,6 +76,31 @@ export default function TeacherProfilePage() {
       const data = await response.json();
       if (response.ok) {
         setSaved(true);
+        if (data.profile) {
+          setProfile(data.profile);
+        }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('teacher-profile-updated', {
+              detail: {
+                name: payload.name,
+                email: payload.email,
+                avatarSeed: newSeed,
+              },
+            })
+          );
+          try {
+            localStorage.setItem(
+              'teacher_profile',
+              JSON.stringify({
+                name: payload.name,
+                email: payload.email,
+                avatarSeed: newSeed,
+              })
+            );
+          } catch {}
+        }
+        router.refresh();
       }
     } catch (err) {
       console.error('Failed to auto-save teacher avatar:', err);
@@ -72,14 +113,46 @@ export default function TeacherProfilePage() {
     event.preventDefault();
     try {
       setSaving(true);
+      const payload = {
+        ...profile,
+        name: profile.name.trim(),
+        email: profile.email.trim(),
+      };
       const response = await fetch('/api/teacher/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Unable to save profile');
       setSaved(true);
+
+      if (data.profile) {
+        setProfile(data.profile);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('teacher-profile-updated', {
+            detail: {
+              name: payload.name,
+              email: payload.email,
+              avatarSeed: payload.avatarSeed,
+            },
+          })
+        );
+        try {
+          localStorage.setItem(
+            'teacher_profile',
+            JSON.stringify({
+              name: payload.name,
+              email: payload.email,
+              avatarSeed: payload.avatarSeed,
+            })
+          );
+        } catch {}
+      }
+      router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Unable to save profile');
     } finally {

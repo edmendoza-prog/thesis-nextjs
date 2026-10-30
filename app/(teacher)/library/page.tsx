@@ -441,7 +441,7 @@ function LibraryContent() {
       setLoading(true);
       const res = await fetch('/api/teacher/library');
       if (res.status === 401) {
-        router.push('/login');
+        router.push('/login/teacher');
         return;
       }
       const data = await res.json();

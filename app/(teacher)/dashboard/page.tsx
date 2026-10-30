@@ -87,11 +87,19 @@ export default function DashboardPage() {
   const [showCreateActivityModal, setShowCreateActivityModal] = useState(false);
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('teacher_profile');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.name) setTeacherName(parsed.name);
+      }
+    } catch {}
+
     async function loadDashboardData() {
       try {
         const response = await fetch('/api/teacher/dashboard');
         if (response.status === 401) {
-          router.push('/login');
+          router.push('/login/teacher');
           return;
         }
 
@@ -117,6 +125,18 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
+
+    const handleProfileUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.name) {
+        setTeacherName(customEvent.detail.name);
+      }
+    };
+
+    window.addEventListener('teacher-profile-updated', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('teacher-profile-updated', handleProfileUpdate);
+    };
   }, [router]);
 
   const firstName = teacherName ? teacherName.trim().split(/\s+/)[0] : 'Teacher';

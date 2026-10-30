@@ -3,19 +3,11 @@ import pool from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 async function insertClassWithFallback(name: string, sectionName: string, teacherId: number) {
-  try {
-    const [result] = await pool.query(
-      'INSERT INTO classes (name, grade_level, section, teacher_id) VALUES (?, ?, ?, ?)',
-      [name, 0, sectionName, teacherId]
-    );
-    return result;
-  } catch {
-    const [result] = await pool.query(
-      'INSERT INTO classes (name, grade_level, section, teacher_user_id) VALUES (?, ?, ?, ?)',
-      [name, 0, sectionName, teacherId]
-    );
-    return result;
-  }
+  const [result] = await pool.query(
+    'INSERT INTO classes (name, grade_level, section, teacher_id) VALUES (?, ?, ?, ?)',
+    [name, 0, sectionName, teacherId]
+  );
+  return result;
 }
 
 async function saveAttendanceWithFallback(classId: number, studentId: number, date: string, status: string) {

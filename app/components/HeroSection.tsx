@@ -70,7 +70,7 @@ export default function HeroSection() {
                   </p>
                 </div>
 
-                <Link href="/login?role=student">
+                <Link href="/login/student">
                   <button
                     type="button"
                     className="w-full py-2.5 px-3 rounded-xl font-bold text-xs text-amber-950 bg-amber-400 hover:bg-amber-300 transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
@@ -101,7 +101,7 @@ export default function HeroSection() {
                   </p>
                 </div>
 
-                <Link href="/login?role=teacher">
+                <Link href="/login/teacher">
                   <button
                     type="button"
                     className="w-full py-2.5 px-3 rounded-xl font-bold text-xs text-white bg-sky-600 hover:bg-sky-700 transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
