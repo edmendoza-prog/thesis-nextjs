@@ -289,7 +289,7 @@ export async function POST(request: Request) {
 
     // Ensure lessons table has bg_image column
     try {
-      await pool.query('ALTER TABLE lessons ADD COLUMN bg_image TEXT NULL');
+      await pool.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS bg_image TEXT NULL');
     } catch {
       // Column may already exist
     }

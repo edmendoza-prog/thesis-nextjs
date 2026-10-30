@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, avatarSeed, profile: updatedProfile });
   } catch (error: any) {
     console.error('Teacher profile save error:', error);
-    if (error?.code === 'ER_DUP_ENTRY') {
+    if (error?.code === 'ER_DUP_ENTRY' || error?.code === '23505') {
       return NextResponse.json({ error: 'This email address is already in use by another account' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Unable to save teacher profile' }, { status: 500 });

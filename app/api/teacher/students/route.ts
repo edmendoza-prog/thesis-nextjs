@@ -6,15 +6,9 @@ export const dynamic = 'force-dynamic';
 
 async function ensureLifeSpanColumn() {
   try {
-    const [cols] = await pool.query(
-      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
-       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'life_span'`
-    );
-    if ((cols as any[]).length === 0) {
-      await pool.query(`ALTER TABLE users ADD COLUMN life_span INT DEFAULT 100`);
-    }
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS life_span INT DEFAULT 100`);
   } catch (err) {
-    console.error('ensureLifeSpanColumn error:', err);
+    // Column already exists
   }
 }
 
