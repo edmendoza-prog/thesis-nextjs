@@ -216,23 +216,23 @@ function StudentAuthContent() {
       </header>
 
       {/* Centered Form Area */}
-      <main className="w-full max-w-[460px] mx-auto my-auto px-4 py-6">
+      <main className="w-full max-w-[580px] sm:max-w-[640px] mx-auto my-auto px-5 sm:px-8 py-8">
 
         {mode === 'signup' && (
           /* 3 Thin Progress Bars above the form that turn teal as user advances */
-          <div className="flex gap-2 w-full mb-7" aria-label="Sign-up Progress">
+          <div className="flex gap-2.5 w-full mb-9" aria-label="Sign-up Progress">
             <div
-              className={`flex-1 h-[3px] rounded-full transition-colors duration-250 ${step >= 1 ? 'bg-[#0bc2cf]' : 'bg-[#e5e7eb]'
+              className={`flex-1 h-1.5 rounded-full transition-colors duration-250 ${step >= 1 ? 'bg-[#0bc2cf]' : 'bg-[#e5e7eb]'
                 }`}
               title="Step 1: About You"
             />
             <div
-              className={`flex-1 h-[3px] rounded-full transition-colors duration-250 ${step >= 2 ? 'bg-[#0bc2cf]' : 'bg-[#e5e7eb]'
+              className={`flex-1 h-1.5 rounded-full transition-colors duration-250 ${step >= 2 ? 'bg-[#0bc2cf]' : 'bg-[#e5e7eb]'
                 }`}
               title="Step 2: Account"
             />
             <div
-              className={`flex-1 h-[3px] rounded-full transition-colors duration-250 ${step >= 3 ? 'bg-[#0bc2cf]' : 'bg-[#e5e7eb]'
+              className={`flex-1 h-1.5 rounded-full transition-colors duration-250 ${step >= 3 ? 'bg-[#0bc2cf]' : 'bg-[#e5e7eb]'
                 }`}
               title="Step 3: Ready"
             />
@@ -242,7 +242,7 @@ function StudentAuthContent() {
         {/* Error Message Box */}
         {error && (
           <div
-            className="bg-[#fef2f2] border-[1.5px] border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-[10px] mb-5 text-sm font-semibold flex items-center gap-2 animate-shake"
+            className="bg-[#fef2f2] border-[1.5px] border-[#fecaca] text-[#991b1b] px-4 py-3.5 rounded-xl mb-6 text-base font-semibold flex items-center gap-2.5 animate-shake"
             role="alert"
           >
             <span>⚠️</span>
@@ -252,19 +252,19 @@ function StudentAuthContent() {
 
         {mode === 'login' ? (
           /* ==================== LOGIN VIEW ==================== */
-          <div className="space-y-6">
+          <div className="space-y-7">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a1a] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1a1a1a] tracking-tight">
                 Welcome Back!
               </h1>
-              <p className="text-sm font-medium text-[#6f6f6f] mt-1.5">
+              <p className="text-base font-medium text-[#6f6f6f] mt-2">
                 Enter your student handle or email to sign in.
               </p>
             </div>
 
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5">
+                <label className="block text-sm font-bold text-[#1a1a1a] mb-2">
                   Username or Email
                 </label>
                 <input
@@ -272,17 +272,17 @@ function StudentAuthContent() {
                   placeholder="e.g. sammy or sammy@school.edu"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                  className="w-full px-4 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                   required
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-[#1a1a1a]">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-bold text-[#1a1a1a]">
                     Password
                   </label>
-                  <span className="text-[11px] text-[#6f6f6f]">
+                  <span className="text-xs text-[#6f6f6f]">
                     Ask your teacher if you forgot
                   </span>
                 </div>
@@ -292,21 +292,21 @@ function StudentAuthContent() {
                     placeholder="Enter your secret password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full pl-3.5 pr-10 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                    className="w-full pl-4 pr-12 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowLoginPassword(!showLoginPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6f6f6f] hover:text-[#1a1a1a] cursor-pointer text-xs font-semibold"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6f6f6f] hover:text-[#1a1a1a] cursor-pointer text-sm font-semibold"
                   >
                     {showLoginPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#1a1a1a]">
+              <div className="flex items-center gap-2.5 pt-1">
+                <label className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold text-[#1a1a1a]">
                   <input
                     type="checkbox"
                     checked={loginRemember}
@@ -321,14 +321,14 @@ function StudentAuthContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold py-3 rounded-[10px] border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-sm flex items-center justify-center gap-2 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-2"
+                  className="w-full bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold py-3.5 rounded-xl border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-base flex items-center justify-center gap-2 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-2"
                 >
                   {loading ? 'Signing in...' : 'Log in to GO Learning'}
                 </button>
               </div>
             </form>
 
-            <div className="pt-2 text-center text-xs font-medium text-[#6f6f6f]">
+            <div className="pt-2 text-center text-sm font-medium text-[#6f6f6f]">
               Don’t have an account yet?{' '}
               <button
                 type="button"
@@ -347,32 +347,32 @@ function StudentAuthContent() {
           <div>
             {/* ----------------- STEP 1: ABOUT YOU ----------------- */}
             {step === 1 && (
-              <form onSubmit={handleStep1Next} className="space-y-6">
+              <form onSubmit={handleStep1Next} className="space-y-7">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a1a] tracking-tight">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1a1a1a] tracking-tight">
                     Who are you?
                   </h1>
-                  <p className="text-sm font-medium text-[#6f6f6f] mt-1.5">
+                  <p className="text-base font-medium text-[#6f6f6f] mt-2">
                     Choose your cartoon avatar and grade level.
                   </p>
                 </div>
 
                 {/* Avatar Selection Grid */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold text-[#1a1a1a] uppercase tracking-wider">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-bold text-[#1a1a1a] uppercase tracking-wider">
                       Choose Avatar
                     </label>
                     <button
                       type="button"
                       onClick={handleRandomizeAvatar}
-                      className="text-xs font-bold text-[#0bc2cf] hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-sm font-bold text-[#0bc2cf] hover:underline flex items-center gap-1.5 cursor-pointer"
                     >
                       <span>🎲</span> Random
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-3 sm:gap-3.5">
                     {CHIBI_AVATARS.map((avatar) => {
                       const isSelected = selectedAvatar === avatar.seed;
                       return (
@@ -380,15 +380,15 @@ function StudentAuthContent() {
                           key={avatar.id}
                           type="button"
                           onClick={() => setSelectedAvatar(avatar.seed)}
-                          className={`p-2 rounded-[10px] border-[1.5px] transition-all cursor-pointer flex flex-col items-center justify-center ${isSelected
+                          className={`p-3 sm:p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center ${isSelected
                               ? 'border-[#0bc2cf] bg-[#0bc2cf]/10 text-[#0bc2cf]'
                               : 'border-[#e5e7eb] bg-white hover:border-[#0bc2cf]/60 text-[#1a1a1a]'
                             }`}
                         >
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
-                            <UserAvatar seed={avatar.seed} size={38} />
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center overflow-hidden">
+                            <UserAvatar seed={avatar.seed} size={60} />
                           </div>
-                          <span className="text-[10px] font-bold mt-1 truncate w-full text-center">
+                          <span className="text-xs font-bold mt-2 truncate w-full text-center">
                             {avatar.name.split(' ')[0]}
                           </span>
                         </button>
@@ -399,7 +399,7 @@ function StudentAuthContent() {
 
                 {/* Display Name Input */}
                 <div>
-                  <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5 uppercase tracking-wider">
+                  <label className="block text-sm font-bold text-[#1a1a1a] mb-2 uppercase tracking-wider">
                     Full Name or Nickname
                   </label>
                   <input
@@ -407,20 +407,20 @@ function StudentAuthContent() {
                     placeholder="e.g. Sam Rivera"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                    className="w-full px-4 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                     required
                   />
                 </div>
 
                 {/* Grade Level Dropdown */}
                 <div>
-                  <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5 uppercase tracking-wider">
+                  <label className="block text-sm font-bold text-[#1a1a1a] mb-2 uppercase tracking-wider">
                     Grade Level
                   </label>
                   <select
                     value={gradeLevel}
                     onChange={(e) => setGradeLevel(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors cursor-pointer"
+                    className="w-full px-4 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors cursor-pointer"
                   >
                     {GRADE_LEVELS.map((g) => (
                       <option key={g.id} value={g.label}>
@@ -431,20 +431,20 @@ function StudentAuthContent() {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="pt-2 flex items-center gap-3">
+                <div className="pt-2 flex items-center gap-3.5">
                   <button
                     type="button"
                     onClick={() => {
                       setMode('login');
                       setError('');
                     }}
-                    className="flex-1 bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] text-[#1a1a1a] font-bold text-sm py-2.5 hover:bg-slate-50 transition-colors cursor-pointer text-center"
+                    className="flex-1 bg-white border-[1.5px] border-[#e5e7eb] rounded-xl text-[#1a1a1a] font-bold text-base py-3.5 hover:bg-slate-50 transition-colors cursor-pointer text-center"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
-                    className="flex-[2] bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold text-sm py-2.5 rounded-[10px] border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-center"
+                    className="flex-[2] bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold text-base py-3.5 rounded-xl border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-center"
                   >
                     Next
                   </button>
@@ -454,32 +454,32 @@ function StudentAuthContent() {
 
             {/* ----------------- STEP 2: CREATE ACCOUNT ----------------- */}
             {step === 2 && (
-              <form onSubmit={handleStep2Submit} className="space-y-5">
+              <form onSubmit={handleStep2Submit} className="space-y-6">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a1a] tracking-tight">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1a1a1a] tracking-tight">
                     Tell us about you
                   </h1>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#0bc2cf]/10 text-[#0bc2cf] border border-[#0bc2cf]/25">
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#0bc2cf]/10 text-[#0bc2cf] border border-[#0bc2cf]/25">
                       Student Account
                     </span>
                   </div>
                 </div>
 
                 {/* Chosen Identity Summary */}
-                <div className="flex items-center justify-between p-3 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-[#f9fafb]">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#e5e7eb]">
-                      <UserAvatar seed={selectedAvatar} size={32} />
+                <div className="flex items-center justify-between p-4 rounded-xl border-[1.5px] border-[#e5e7eb] bg-[#f9fafb]">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#e5e7eb]">
+                      <UserAvatar seed={selectedAvatar} size={44} />
                     </div>
-                    <div className="truncate text-xs font-bold text-[#1a1a1a]">
+                    <div className="truncate text-sm font-bold text-[#1a1a1a]">
                       {displayName} • {gradeLevel}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-xs font-bold text-[#0bc2cf] hover:underline cursor-pointer shrink-0 ml-2"
+                    className="text-sm font-bold text-[#0bc2cf] hover:underline cursor-pointer shrink-0 ml-2"
                   >
                     Edit
                   </button>
@@ -487,7 +487,7 @@ function StudentAuthContent() {
 
                 {/* Username or Email */}
                 <div>
-                  <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5 uppercase tracking-wider">
+                  <label className="block text-sm font-bold text-[#1a1a1a] mb-2 uppercase tracking-wider">
                     Username or Email
                   </label>
                   <input
@@ -495,15 +495,15 @@ function StudentAuthContent() {
                     placeholder="e.g. sam2026 or sam@example.com"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                    className="w-full px-4 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                     required
                   />
                 </div>
 
                 {/* Password Fields */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-sm font-bold text-[#1a1a1a] mb-2 uppercase tracking-wider">
                       Password
                     </label>
                     <div className="relative">
@@ -512,13 +512,13 @@ function StudentAuthContent() {
                         placeholder="Minimum 6 characters"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-3.5 pr-10 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                        className="w-full pl-4 pr-12 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6f6f6f] hover:text-[#1a1a1a] cursor-pointer text-xs font-semibold"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6f6f6f] hover:text-[#1a1a1a] cursor-pointer text-sm font-semibold"
                       >
                         {showPassword ? 'Hide' : 'Show'}
                       </button>
@@ -526,7 +526,7 @@ function StudentAuthContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-sm font-bold text-[#1a1a1a] mb-2 uppercase tracking-wider">
                       Confirm Password
                     </label>
                     <div className="relative">
@@ -535,13 +535,13 @@ function StudentAuthContent() {
                         placeholder="Re-type password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-3.5 pr-10 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                        className="w-full pl-4 pr-12 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6f6f6f] hover:text-[#1a1a1a] cursor-pointer text-xs font-semibold"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6f6f6f] hover:text-[#1a1a1a] cursor-pointer text-sm font-semibold"
                       >
                         {showConfirmPassword ? 'Hide' : 'Show'}
                       </button>
@@ -551,7 +551,7 @@ function StudentAuthContent() {
 
                 {/* Optional Parent / Guardian */}
                 <div>
-                  <label className="block text-xs font-bold text-[#1a1a1a] mb-1.5">
+                  <label className="block text-sm font-bold text-[#1a1a1a] mb-2">
                     Parent or Guardian Name (Optional)
                   </label>
                   <input
@@ -559,13 +559,13 @@ function StudentAuthContent() {
                     placeholder="e.g. Maria Rivera"
                     value={parentGuardian}
                     onChange={(e) => setParentGuardian(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-sm font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
+                    className="w-full px-4 py-3.5 rounded-xl border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] text-base font-medium placeholder-[#9ca3af] focus:border-[#0bc2cf] focus-visible:outline-2 focus-visible:outline-[#0bc2cf] focus-visible:outline-offset-1 transition-colors"
                   />
                 </div>
 
                 {/* Confirmation Checkbox */}
                 <div className="pt-1">
-                  <label className="flex items-start gap-2.5 cursor-pointer text-xs font-medium text-[#1a1a1a] leading-tight">
+                  <label className="flex items-start gap-3 cursor-pointer text-sm font-medium text-[#1a1a1a] leading-snug">
                     <input
                       type="checkbox"
                       defaultChecked
@@ -577,21 +577,21 @@ function StudentAuthContent() {
                 </div>
 
                 {/* Actions */}
-                <div className="pt-2 flex items-center gap-3">
+                <div className="pt-2 flex items-center gap-3.5">
                   <button
                     type="button"
                     onClick={() => {
                       setStep(1);
                       setError('');
                     }}
-                    className="flex-1 bg-white border-[1.5px] border-[#e5e7eb] rounded-[10px] text-[#1a1a1a] font-bold text-sm py-2.5 hover:bg-slate-50 transition-colors cursor-pointer text-center"
+                    className="flex-1 bg-white border-[1.5px] border-[#e5e7eb] rounded-xl text-[#1a1a1a] font-bold text-base py-3.5 hover:bg-slate-50 transition-colors cursor-pointer text-center"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-[2] bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold text-sm py-2.5 rounded-[10px] border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-center disabled:opacity-60"
+                    className="flex-[2] bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold text-base py-3.5 rounded-xl border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-center disabled:opacity-60"
                   >
                     {loading ? 'Creating...' : 'Finish'}
                   </button>
@@ -601,33 +601,33 @@ function StudentAuthContent() {
 
             {/* ----------------- STEP 3: READY ----------------- */}
             {step === 3 && (
-              <div className="text-center py-4 space-y-6">
-                <div className="w-16 h-16 rounded-full bg-[#0bc2cf]/10 border-[1.5px] border-[#0bc2cf] flex items-center justify-center text-3xl mx-auto">
-                  🎉
+              <div className="text-center py-6 space-y-7">
+                <div className="w-24 h-24 rounded-full bg-[#0bc2cf]/10 border-2 border-[#0bc2cf] flex items-center justify-center overflow-hidden mx-auto">
+                  <UserAvatar seed={selectedAvatar} size={96} className="w-full h-full object-cover" />
                 </div>
 
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1a1a1a] tracking-tight">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1a1a1a] tracking-tight">
                     Welcome, {displayName}!
                   </h1>
-                  <p className="text-sm font-semibold text-[#0bc2cf] mt-1">
+                  <p className="text-base font-semibold text-[#0bc2cf] mt-1.5">
                     Your student account is ready for {gradeLevel}.
                   </p>
                 </div>
 
                 {/* Summary Card */}
-                <div className="border-[1.5px] border-[#e5e7eb] rounded-[10px] p-4 bg-white text-left text-xs space-y-2">
-                  <div className="flex justify-between pb-2 border-b border-[#f3f4f6]">
+                <div className="border-[1.5px] border-[#e5e7eb] rounded-xl p-5 bg-white text-left text-sm space-y-3">
+                  <div className="flex justify-between pb-3 border-b border-[#f3f4f6]">
                     <span className="text-[#6f6f6f] font-medium">Account Type</span>
                     <span className="text-[#1a1a1a] font-bold">Student</span>
                   </div>
-                  <div className="flex justify-between pb-2 border-b border-[#f3f4f6]">
+                  <div className="flex justify-between pb-3 border-b border-[#f3f4f6]">
                     <span className="text-[#6f6f6f] font-medium">Grade Level</span>
                     <span className="text-[#1a1a1a] font-bold">
                       {gradeLevel}
                     </span>
                   </div>
-                  <div className="flex justify-between pb-2 border-b border-[#f3f4f6]">
+                  <div className="flex justify-between pb-3 border-b border-[#f3f4f6]">
                     <span className="text-[#6f6f6f] font-medium">Student Handle</span>
                     <span className="text-[#1a1a1a] font-bold">@{username}</span>
                   </div>
@@ -640,7 +640,7 @@ function StudentAuthContent() {
                 <button
                   type="button"
                   onClick={() => router.push('/student-dashboard')}
-                  className="w-full bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold py-3 rounded-[10px] border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-sm"
+                  className="w-full bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold py-4 rounded-xl border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-base"
                 >
                   Start Learning
                 </button>

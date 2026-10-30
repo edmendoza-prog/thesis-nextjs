@@ -26,7 +26,10 @@ export async function POST(request: Request) {
     const role = body.role === 'teacher' ? 'teacher' : body.role === 'student' ? 'student' : null;
     const avatarSeed = body.avatarSeed ? String(body.avatarSeed).trim() : null;
     const guardianName = body.guardianName ? String(body.guardianName).trim() : null;
-    const studentNumber = body.studentNumber ? String(body.studentNumber).trim() : null;
+    const rawStudentNumber = body.studentNumber ? String(body.studentNumber).trim() : null;
+    const employeeId = body.employeeId ? String(body.employeeId).trim() : null;
+    const department = body.department ? String(body.department).trim() : null;
+    const designation = body.designation ? String(body.designation).trim() : null;
 
     if (!fullName || !email || !password || !role) {
       return NextResponse.json({ error: 'Display name, username/email, password, and role are required' }, { status: 400 });
@@ -51,11 +54,35 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'An account with this username or email already exists. Try another one!' }, { status: 409 });
       }
 
+      // Ensure student_number is unique (users.student_number has a UNIQUE constraint)
+      let studentNumber: string | null = rawStudentNumber;
+      if (role === 'student') {
+        const gradeMatch = rawStudentNumber?.match(/^grade\s*(\d+)$/i);
+        const prefix = gradeMatch ? `G${gradeMatch[1]}` : rawStudentNumber || 'STU';
+        const isGenericGrade = Boolean(gradeMatch) || !rawStudentNumber;
+
+        let needsUniqueId = isGenericGrade;
+        if (!needsUniqueId && studentNumber) {
+          const [dupStudentRows] = await connection.query(
+            'SELECT id FROM users WHERE student_number = ? LIMIT 1',
+            [studentNumber]
+          );
+          if ((dupStudentRows as Array<{ id: number }>).length > 0) {
+            needsUniqueId = true;
+          }
+        }
+
+        if (needsUniqueId) {
+          const suffix = `${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+          studentNumber = `${prefix}-${suffix}`;
+        }
+      }
+
       const passwordHash = await hashPassword(password);
       const [userResult] = await connection.query(
-        `INSERT INTO users (email, name, user_type, password_hash, avatar_seed, guardian_name, student_number)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [email, fullName, role, passwordHash, avatarSeed, guardianName, studentNumber]
+        `INSERT INTO users (email, name, user_type, password_hash, avatar_seed, guardian_name, student_number, employee_id, department, designation)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [email, fullName, role, passwordHash, avatarSeed, guardianName, studentNumber, employeeId, department, designation]
       );
       const userId = Number((userResult as { insertId: number }).insertId);
 

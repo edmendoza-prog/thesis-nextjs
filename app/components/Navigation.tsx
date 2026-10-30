@@ -41,21 +41,21 @@ export default function Navigation() {
           <GoLearningLogo />
         </Link>
 
-        {/* Right Navbar Actions: Student Portal & Teacher Workspace */}
+        {/* Right Navbar Actions: Student & Teacher */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             href="/login/student"
             id="nav-login"
             className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
           >
-            Student Portal
+            Student
           </Link>
           <Link
             href="/login/teacher"
             id="nav-signup"
             className="text-xs sm:text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 px-3.5 sm:px-4 py-2 rounded-xl transition-colors shadow-xs"
           >
-            Teacher Workspace
+            Teacher
           </Link>
         </div>
       </div>
