@@ -75,13 +75,34 @@ function extractTextFromXml(xml: string): string {
 }
 
 /**
- * Extracts text from PDF files using pdfjs-dist.
+ * Extracts text from PDF files using pdfjs-dist with a local worker and clean ASCII text fallback.
  */
 async function extractTextFromPDF(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+
   try {
+    // 1. Pre-load the worker module so globalThis.pdfjsWorker is registered
+    try {
+      const workerMod = await import("pdfjs-dist/build/pdf.worker.min.mjs");
+      if (typeof globalThis !== "undefined" && workerMod?.WorkerMessageHandler) {
+        (globalThis as Record<string, unknown>).pdfjsWorker = {
+          WorkerMessageHandler: workerMod.WorkerMessageHandler,
+        };
+      }
+    } catch {
+      // Fallback to static worker file in /public
+    }
+
+    // 2. Import pdfjs-dist and set GlobalWorkerOptions.workerSrc
     const pdfjsLib = await import("pdfjs-dist");
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+    }
+
+    const pdf = await pdfjsLib.getDocument({
+      data: new Uint8Array(arrayBuffer),
+      useSystemFonts: true,
+    }).promise;
     let fullText = "";
 
     for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) {
@@ -104,10 +125,39 @@ async function extractTextFromPDF(file: File): Promise<string> {
       return fullText.trim();
     }
   } catch (err) {
-    console.warn("PDF extraction fallback to raw text:", err);
+    console.warn("PDFjs extraction fallback to stream text parser:", err);
   }
 
-  return await file.text();
+  // Fallback: Extract readable text literals from PDF stream without binary garbage
+  try {
+    const raw = new TextDecoder("latin1").decode(new Uint8Array(arrayBuffer));
+    const textChunks: string[] = [];
+
+    // Extract text inside parentheses (...) common in uncompressed PDF text blocks
+    const parenMatches = raw.match(/\(([^()\\]{3,200})\)/g);
+    if (parenMatches) {
+      for (const m of parenMatches) {
+        const inner = m.slice(1, -1).trim();
+        if (
+          inner.length >= 3 &&
+          /[a-zA-Z]{2,}/.test(inner) &&
+          !/^(Type|Font|Page|Catalog|Outlines|Parent|Resources|ProcSet|MediaBox|Filter|FlateDecode|Length|Subtype|BaseFont|Encoding|WinAnsiEncoding|MacRomanEncoding|Creator|Producer|CreationDate|ModDate)/i.test(inner)
+        ) {
+          textChunks.push(inner);
+        }
+      }
+    }
+
+    if (textChunks.join(" ").trim().length > 30) {
+      return textChunks.join(" ").replace(/\s+/g, " ").trim();
+    }
+  } catch {
+    // ignore
+  }
+
+  // Final fallback: use file title as topic context rather than raw binary PDF bytes
+  const cleanTitle = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ").trim();
+  return cleanTitle ? `Lesson Document Topic: ${cleanTitle}` : "";
 }
 
 /**

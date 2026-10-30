@@ -42,6 +42,7 @@ type HomeworkItem = {
   rawType: string;
   totalPoints: number;
   questionCount: number;
+  questions?: any[];
   submittedCount: number;
   totalStudents: number;
   submissionProgress: string;
@@ -398,6 +399,8 @@ function LibraryContent() {
 
   // Preview Lesson in-system reader modal state
   const [previewLesson, setPreviewLesson] = useState<LessonItem | null>(null);
+  // Preview Homework / Quiz questions modal state
+  const [previewHomework, setPreviewHomework] = useState<HomeworkItem | null>(null);
 
   // Toast message state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -1443,6 +1446,154 @@ function LibraryContent() {
         );
       })()}
 
+      {/* Teacher In-System Homework / Generated Quiz Preview Modal */}
+      {previewHomework && (() => {
+        const rawList = Array.isArray(previewHomework.questions) ? previewHomework.questions : [];
+        const groups =
+          rawList.length > 0 && Array.isArray(rawList[0]?.questions)
+            ? rawList
+            : rawList.length > 0
+              ? [{ id: 1, name: 'Quiz Questions', questionType: 'Mixed', weight: 100, questions: rawList }]
+              : [];
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs animate-fadeIn">
+            <div className="flex max-h-[92vh] w-full max-w-4xl flex-col rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-200">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-6 py-4">
+                <div>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#EDF0FF] px-2.5 py-0.5 text-[11px] font-bold text-[#4255FF]">
+                    {previewHomework.type} • {previewHomework.totalPoints} pts • {previewHomework.questionCount} Questions
+                  </span>
+                  <h2 className="mt-1 font-heading text-base sm:text-lg font-bold text-[#2E3856]">
+                    {previewHomework.title}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Due: {previewHomework.dueDate} • {previewHomework.sectionName}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewHomework(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 bg-slate-50/40">
+                {groups.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                    <p className="text-sm font-bold text-slate-700">No structured questions found for this activity.</p>
+                  </div>
+                ) : (
+                  groups.map((group: any, gIdx: number) => (
+                    <div key={group.id || gIdx} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                          <h3 className="text-sm font-bold text-[#2E3856]">
+                            {group.name || group.criteriaName || `Section ${gIdx + 1}`}
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            {(group.questions || []).length} items • {group.questionType || 'Questions'} {group.weight ? `(${group.weight}%)` : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {(group.questions || []).map((q: any, qIdx: number) => (
+                          <div key={q.id || qIdx} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 space-y-2.5">
+                            <div className="flex items-start gap-2.5">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#2E3856] text-[11px] font-bold text-white mt-0.5">
+                                {qIdx + 1}
+                              </span>
+                              <p className="font-bold text-xs sm:text-sm text-[#2E3856] leading-snug">
+                                {q.prompt || q.question}
+                              </p>
+                            </div>
+
+                            {q.expectedAnswer && (
+                              <div className="ml-7 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs font-bold text-emerald-800">
+                                Expected Answer: {q.expectedAnswer}
+                              </div>
+                            )}
+
+                            {Array.isArray(q.options) && q.options.length > 0 && (
+                              <div className="ml-7 grid gap-2 sm:grid-cols-2">
+                                {q.options.map((opt: any, oIdx: number) => {
+                                  const isCorr = Boolean(opt.correct === true || opt.correct === 'true');
+                                  return (
+                                    <div
+                                      key={opt.id || oIdx}
+                                      className={`flex items-center gap-2 rounded-lg border p-2.5 text-xs ${
+                                        isCorr
+                                          ? 'border-emerald-500 bg-emerald-50 font-bold text-emerald-900'
+                                          : 'border-slate-200 bg-white text-slate-700'
+                                      }`}
+                                    >
+                                      <span
+                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                                          isCorr ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
+                                        }`}
+                                      >
+                                        {opt.id || String.fromCharCode(65 + oIdx)}
+                                      </span>
+                                      <span className="flex-1">{opt.text}</span>
+                                      {isCorr && <span className="text-[10px] font-extrabold text-emerald-700">✓ Correct</span>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {Array.isArray(q.pairs) && q.pairs.length > 0 && (
+                              <div className="ml-7 overflow-x-auto">
+                                <table className="w-full text-xs text-left border-collapse bg-white rounded-lg border border-slate-200">
+                                  <thead>
+                                    <tr className="bg-slate-100 text-slate-600 font-bold">
+                                      <th className="p-2 border-b border-slate-200">Column A</th>
+                                      <th className="p-2 border-b border-slate-200">Column B (Correct Match)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {q.pairs.map((pair: any, pIdx: number) => (
+                                      <tr key={pair.id || pIdx} className="border-b border-slate-100 last:border-0">
+                                        <td className="p-2 font-semibold text-[#2E3856]">{pair.item}</td>
+                                        <td className="p-2 font-bold text-emerald-700">→ {pair.match}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+
+                            {q.explanation && (
+                              <div className="ml-7 rounded-lg border border-[#EDF0FF] bg-[#EDF0FF]/50 p-2 text-xs text-slate-600">
+                                <span className="font-bold text-[#4255FF]">Explanation: </span>
+                                {q.explanation}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setPreviewHomework(null)}
+                  className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* TOP HEADER: Sidebar maintained, My Library heading, search */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">
         <div>
@@ -1691,6 +1842,15 @@ function LibraryContent() {
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewHomework(hw)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-[#EDF0FF] px-3 py-1.5 text-xs font-bold text-[#4255FF] shadow-2xs hover:bg-[#BAC4FF]/40 transition cursor-pointer"
+                          title="View Generated Quiz Questions"
+                        >
+                          <Icon type="eye" className="h-3.5 w-3.5" />
+                          <span>View Quiz</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteHomework(hw.id)}

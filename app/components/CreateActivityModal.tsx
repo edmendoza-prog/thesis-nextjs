@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { extractLessonText } from '@/lib/documentParser';
 
 export type QuestionType = 'Identification' | 'True or False' | 'Multiple Choice' | 'Matching Type';
@@ -140,6 +140,8 @@ export default function CreateActivityModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
+  const previewSectionRef = useRef<HTMLDivElement | null>(null);
+  const modalBodyRef = useRef<HTMLDivElement | null>(null);
 
   // Question Translation States
   const [questionTargetLang, setQuestionTargetLang] = useState<string>('Filipino (Tagalog)');
@@ -210,11 +212,12 @@ export default function CreateActivityModal({
     const checkApiKey = async () => {
       try {
         const response = await fetch('/api/ai/generate');
-        const data = await response.json();
-        setApiKeyMissing(!data?.configured);
+        if (response.ok) {
+          setApiKeyMissing(false);
+        }
       } catch (error) {
-        console.error('Failed to check API key:', error);
-        setApiKeyMissing(true);
+        console.error('Failed to check AI endpoint:', error);
+        setApiKeyMissing(false);
       }
     };
     checkApiKey();
@@ -231,8 +234,11 @@ export default function CreateActivityModal({
     [criteriaRows]
   );
 
-  const isWeightValid = totalWeight === 100;
-  const readyToGenerate = isWeightValid && totalQuestions > 0 && (lessonText.trim().length > 0 || translatedText.trim().length > 0);
+  const isWeightValid = Math.round(totalWeight) === 100;
+  const readyToGenerate =
+    isWeightValid &&
+    totalQuestions > 0 &&
+    (lessonText.trim().length > 0 || translatedText.trim().length > 0 || title.trim().length > 0);
 
   const toggleGroupCollapse = (groupId: string | number) => {
     setCollapsedGroupIds((prev) => ({
@@ -345,27 +351,25 @@ export default function CreateActivityModal({
     }
   };
 
-  // Generate Questions
-  const handleGenerateQuestions = async () => {
+  // Generate Questions Helper (used by both Generate button and Save fallback)
+  const runQuestionGeneration = async (): Promise<CriteriaGroup[] | null> => {
     if (!isWeightValid) {
       setErrorMessage(`Criteria weights must total exactly 100% (currently ${totalWeight}%).`);
-      return;
+      return null;
     }
 
     if (totalQuestions <= 0) {
       setErrorMessage('Please specify at least 1 question across your criteria.');
-      return;
+      return null;
     }
 
-    const contentToUse = (translatedText || lessonText).trim();
+    const contentToUse =
+      (translatedText || lessonText).trim() ||
+      (title.trim() ? `Activity Topic: ${title.trim()}. Subject: ${subject || 'General Education'}.` : '');
+
     if (!contentToUse) {
-      setErrorMessage('Please upload or enter lesson content before generating questions.');
-      return;
-    }
-
-    if (apiKeyMissing) {
-      setErrorMessage('OpenAI API key is not configured.');
-      return;
+      setErrorMessage('Please upload a document, paste lesson content, or enter an Activity Title before generating questions.');
+      return null;
     }
 
     setErrorMessage(null);
@@ -383,13 +387,26 @@ export default function CreateActivityModal({
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Question generation failed');
+      const rawText = await response.text();
+      let data: any = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        throw new Error(
+          !response.ok
+            ? `Server error (${response.status}): Question generation timed out or failed.`
+            : 'Received an invalid response from the server.'
+        );
       }
 
-      const data = await response.json();
-      const rawGroups = data.generatedGroups || [];
+      if (!response.ok) {
+        throw new Error(data.error || data.details || 'Question generation failed');
+      }
+
+      const rawGroups = Array.isArray(data.generatedGroups) ? data.generatedGroups : [];
+      if (rawGroups.length === 0) {
+        throw new Error('No questions were returned. Please check your lesson content and try again.');
+      }
 
       const formattedGroups: CriteriaGroup[] = rawGroups.map((group: any, groupIdx: number) => {
         const matchedCriteria = criteriaRows[groupIdx] || {
@@ -406,7 +423,15 @@ export default function CreateActivityModal({
           weight: group.weight || matchedCriteria.weight,
           questions: (group.questions || []).map((q: any, qIdx: number) => ({
             id: `${matchedCriteria.id}-${qIdx + 1}`,
-            type: q.type || (matchedCriteria.questionType === 'Identification' ? 'identification' : matchedCriteria.questionType === 'True or False' ? 'true_false' : matchedCriteria.questionType === 'Matching Type' ? 'matching' : 'multiple_choice'),
+            type:
+              q.type ||
+              (matchedCriteria.questionType === 'Identification'
+                ? 'identification'
+                : matchedCriteria.questionType === 'True or False'
+                  ? 'true_false'
+                  : matchedCriteria.questionType === 'Matching Type'
+                    ? 'matching'
+                    : 'multiple_choice'),
             prompt: q.prompt || '',
             expectedAnswer: q.expectedAnswer,
             options: q.options || [],
@@ -421,12 +446,24 @@ export default function CreateActivityModal({
       setGeneratedGroups(formattedGroups);
       setShowQuestionsPreview(true);
       setCollapsedGroupIds({});
+
+      setTimeout(() => {
+        previewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+
+      return formattedGroups;
     } catch (error: any) {
       console.error('Question generation failed:', error);
       setErrorMessage(error.message || 'Question generation failed. Please check your lesson content and try again.');
+      return null;
     } finally {
       setLoadingGenerate(false);
     }
+  };
+
+  // Generate Questions Button Handler
+  const handleGenerateQuestions = async () => {
+    await runQuestionGeneration();
   };
 
   // Correct Answer Management Handlers
@@ -571,22 +608,30 @@ export default function CreateActivityModal({
   const handleSaveActivity = async () => {
     if (!title.trim()) {
       setErrorMessage('Please enter an Activity Title.');
+      modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (!selectedClassId) {
       setErrorMessage('Please select a target class.');
+      modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
+    let groupsToSave = generatedGroups;
 
     if (includeQuiz) {
       if (!isWeightValid) {
         setErrorMessage(`Question criteria weights must total exactly 100% (currently ${totalWeight}%).`);
         return;
       }
-      if (generatedGroups.length === 0 && !lessonText.trim()) {
-        setErrorMessage('Please generate quiz questions or provide lesson text before saving.');
-        return;
+      if (groupsToSave.length === 0) {
+        // Automatically generate the quiz questions if the teacher clicked Save before clicking Generate Quiz
+        const autoGenerated = await runQuestionGeneration();
+        if (!autoGenerated || autoGenerated.length === 0) {
+          return;
+        }
+        groupsToSave = autoGenerated;
       }
     }
 
@@ -610,8 +655,8 @@ export default function CreateActivityModal({
           visibility,
           include_quiz: includeQuiz,
           criteria: criteriaRows,
-          generatedGroups,
-          generated_questions: generatedGroups,
+          generatedGroups: groupsToSave,
+          generated_questions: groupsToSave,
           due_date: finalDueDateTime,
           allow_late_submission: allowLateSubmission,
         }),
@@ -672,7 +717,7 @@ export default function CreateActivityModal({
         </div>
 
         {/* Scrollable Modal Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+        <div ref={modalBodyRef} className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
           {/* Success Banner */}
           {showSuccessBanner && (
             <div className="rounded-2xl border border-[#23B26D]/30 bg-[#23B26D]/10 p-4 text-[#23B26D] flex items-center gap-3 shadow-xs">
@@ -1174,7 +1219,7 @@ export default function CreateActivityModal({
                 <button
                   type="button"
                   onClick={handleGenerateQuestions}
-                  disabled={loadingGenerate || !readyToGenerate || apiKeyMissing}
+                  disabled={loadingGenerate}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4255FF] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#4255FF]/20 hover:bg-[#3444D9] disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {loadingGenerate ? (
@@ -1185,17 +1230,48 @@ export default function CreateActivityModal({
                   ) : (
                     <>
                       <i className="ri-sparkling-fill text-base text-[#FFCD1F]" />
-                      <span>Generate {assessmentCategory === 'quiz' ? 'Quiz' : 'Test'} ({totalQuestions} Items)</span>
+                      <span>
+                        {generatedGroups.length > 0 ? 'Regenerate' : 'Generate'}{' '}
+                        {assessmentCategory === 'quiz' ? 'Quiz' : 'Test'} ({totalQuestions} Items)
+                      </span>
                     </>
                   )}
                 </button>
               </div>
+
+              {errorMessage && (
+                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700 flex items-center justify-between gap-2">
+                  <span>⚠️ {errorMessage}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage(null)}
+                    className="text-red-400 hover:text-red-600 font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {generatedGroups.length > 0 && !loadingGenerate && (
+                <div className="mt-4 rounded-xl border border-[#23B26D]/30 bg-[#23B26D]/10 p-3 text-xs font-bold text-[#23B26D] flex items-center justify-between gap-2">
+                  <span>
+                    ✓ Successfully generated {generatedGroups.reduce((s, g) => s + g.questions.length, 0)} questions across {generatedGroups.length} criteria! Review or edit them below.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => previewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className="underline hover:opacity-80 shrink-0 cursor-pointer"
+                  >
+                    Jump to Preview ↓
+                  </button>
+                </div>
+              )}
             </section>
           )}
 
           {/* 5. GENERATED QUESTIONS PREVIEW WITH TRANSLATION CONTROLS */}
           {generatedGroups.length > 0 && (
-            <div className="space-y-5 animate-fadeIn">
+            <div ref={previewSectionRef} className="space-y-5 animate-fadeIn">
               <div className="flex flex-col gap-4 border-b border-slate-200 pb-3">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
