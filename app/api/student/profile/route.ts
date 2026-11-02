@@ -3,6 +3,8 @@ import pool from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth';
 import { getStudentBadgesAndExp, BADGE_CATALOG, calculateLevelFromExp } from '@/lib/badges';
 
+export const dynamic = 'force-dynamic';
+
 type StudentProfile = {
   id?: number;
   name: string;

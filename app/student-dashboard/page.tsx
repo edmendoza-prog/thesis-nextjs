@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, useMemo, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import UserAvatar from "@/app/components/UserAvatar";
 import BadgeToast from "@/components/BadgeToast";
@@ -419,7 +419,6 @@ function StudentDashboardContent() {
     classIdParam ? Number(classIdParam) : null
   );
   const [classDetailTab, setClassDetailTab] = useState<"lessons" | "homework">("lessons");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeBadgeToast, setActiveBadgeToast] = useState<{
     badgeId: string | number;
     description?: string;
@@ -439,11 +438,6 @@ function StudentDashboardContent() {
   const [hwSearch, setHwSearch] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -585,36 +579,6 @@ function StudentDashboardContent() {
   }, []);
 
   const selectedClass = classes.find((c) => c.id === selectedClassId) || null;
-
-
-  const handleDownloadLesson = (lesson: LessonItem) => {
-    if (lesson.fileUrl) {
-      const a = document.createElement("a");
-      a.href = lesson.fileUrl;
-      a.download = lesson.fileName || `${lesson.title}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast(`Downloading ${lesson.fileName || "lesson material"}...`);
-      return;
-    }
-
-    if (lesson.notes) {
-      const blob = new Blob([lesson.notes], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${lesson.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "lesson-material"}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Downloading lesson text material...");
-      return;
-    }
-
-    showToast("No downloadable file attached.");
-  };
 
   const handleOpenHomework = (hw: HomeworkItem, cls: ClassItem) => {
     const params = new URLSearchParams({
@@ -1186,7 +1150,7 @@ function StudentDashboardContent() {
                           <span className="text-slate-500 font-semibold hidden lg:inline">Sort:</span>
                           <select
                             value={hwSort}
-                            onChange={(e) => setHwSort(e.target.value as any)}
+                            onChange={(e) => setHwSort(e.target.value as typeof hwSort)}
                             className="bg-transparent outline-none cursor-pointer font-bold text-slate-800 pr-1"
                           >
                             <option value="newest">🕒 Newest First</option>
@@ -1514,16 +1478,6 @@ function StudentDashboardContent() {
         description={activeBadgeToast?.description}
         xp={activeBadgeToast?.xp}
       />
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 rounded-2xl bg-[#0A092D] px-5 py-3 text-sm font-bold text-white shadow-2xl animate-fadeInUp">
-          <Icon name="sparkle" className="h-4 w-4 text-[#FFCD1F]" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-
 
       {/* Desktop Fixed Dark Navy Sidebar */}
       <aside className="fixed bottom-0 left-0 top-0 z-40 hidden w-64 flex-col border-r border-[#1E2340] bg-[#0A092D] p-5 shadow-xl lg:flex text-white">

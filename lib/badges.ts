@@ -461,95 +461,132 @@ export async function getStudentBadgesAndExp(studentId: number): Promise<{
   await ensureBadgesSeededInDb();
 
   // 1. Fetch lesson reads for student
-  const [lessonReadRows] = await pool.query(
-    `SELECT lr.lesson_id, lr.read_at, l.class_id
-     FROM lesson_reads lr
-     LEFT JOIN lessons l ON l.id = lr.lesson_id
-     WHERE lr.student_id = ?
-     ORDER BY lr.read_at ASC`,
-    [studentId]
-  );
-  const lessonReads = lessonReadRows as DbLessonReadRow[];
+  let lessonReads: DbLessonReadRow[] = [];
+  try {
+    const [lessonReadRows] = await pool.query(
+      `SELECT lr.lesson_id, lr.read_at, l.class_id
+       FROM lesson_reads lr
+       LEFT JOIN lessons l ON l.id = lr.lesson_id
+       WHERE lr.student_id = ?
+       ORDER BY lr.read_at ASC`,
+      [studentId]
+    );
+    lessonReads = lessonReadRows as DbLessonReadRow[];
+  } catch (err) {
+    console.warn('Badges lesson_reads query warning:', err);
+  }
 
   // 2. Fetch enrolled classes and total visible lessons per class + total assigned activities
-  const [enrolledClassesRows] = await pool.query(
-    `SELECT se.class_id
-     FROM student_enrollments se
-     WHERE se.student_id = ? AND se.status = 'active'`,
-    [studentId]
-  );
-  const classIds = (enrolledClassesRows as DbEnrolledClassRow[]).map((r) => Number(r.class_id));
+  let classIds: number[] = [];
+  try {
+    const [enrolledClassesRows] = await pool.query(
+      `SELECT se.class_id
+       FROM student_enrollments se
+       WHERE se.student_id = ? AND se.status = 'active'`,
+      [studentId]
+    );
+    classIds = (enrolledClassesRows as DbEnrolledClassRow[]).map((r) => Number(r.class_id));
+  } catch (err) {
+    console.warn('Badges student_enrollments query warning:', err);
+  }
 
   const totalLessonsByClass: Record<number, number> = {};
   let allAssignedActivities: DbActivityRow[] = [];
 
   if (classIds.length > 0) {
     const placeholders = classIds.map(() => '?').join(',');
-    const [classLessonCounts] = await pool.query(
-      `SELECT class_id, COUNT(*) AS total
-       FROM lessons
-       WHERE class_id IN (${placeholders}) AND is_visible = 1
-       GROUP BY class_id`,
-      classIds
-    );
-    (classLessonCounts as DbLessonCountRow[]).forEach((row) => {
-      totalLessonsByClass[Number(row.class_id)] = Number(row.total);
-    });
+    try {
+      const [classLessonCounts] = await pool.query(
+        `SELECT class_id, COUNT(*) AS total
+         FROM lessons
+         WHERE class_id IN (${placeholders}) AND is_visible = 1
+         GROUP BY class_id`,
+        classIds
+      );
+      (classLessonCounts as DbLessonCountRow[]).forEach((row) => {
+        totalLessonsByClass[Number(row.class_id)] = Number(row.total);
+      });
+    } catch (err) {
+      console.warn('Badges lessons count query warning:', err);
+    }
 
-    const [actRows] = await pool.query(
-      `SELECT id, class_id, title, total_points, due_date
-       FROM activities
-       WHERE class_id IN (${placeholders}) AND deleted_at IS NULL`,
-      classIds
-    );
-    allAssignedActivities = actRows as DbActivityRow[];
+    try {
+      const [actRows] = await pool.query(
+        `SELECT id, class_id, title, total_points, due_date
+         FROM activities
+         WHERE class_id IN (${placeholders}) AND deleted_at IS NULL`,
+        classIds
+      );
+      allAssignedActivities = actRows as DbActivityRow[];
+    } catch (err) {
+      console.warn('Badges activities query warning:', err);
+    }
   }
 
   // 3. Fetch student submissions
-  const [submissionRows] = await pool.query(
-    `SELECT s.activity_id, s.score, s.max_score, s.status, s.submitted_at, a.due_date, a.total_points
-     FROM activity_submissions s
-     LEFT JOIN activities a ON a.id = s.activity_id
-     WHERE s.student_id = ?
-     ORDER BY s.submitted_at ASC`,
-    [studentId]
-  );
-  const submissions = (submissionRows as DbSubmissionRow[]).filter(
-    (s) => s.status === 'completed' || s.score !== null
-  );
+  let submissions: DbSubmissionRow[] = [];
+  try {
+    const [submissionRows] = await pool.query(
+      `SELECT s.activity_id, s.score, s.max_score, s.status, s.submitted_at, a.due_date, a.total_points
+       FROM activity_submissions s
+       LEFT JOIN activities a ON a.id = s.activity_id
+       WHERE s.student_id = ?
+       ORDER BY s.submitted_at ASC`,
+      [studentId]
+    );
+    submissions = (submissionRows as DbSubmissionRow[]).filter(
+      (s) => s.status === 'completed' || s.score !== null
+    );
+  } catch (err) {
+    console.warn('Badges activity_submissions query warning:', err);
+  }
 
   // 4. Fetch attendance records
-  const [attendanceRows] = await pool.query(
-    `SELECT status, date, created_at
-     FROM attendance
-     WHERE student_id = ?`,
-    [studentId]
-  );
-  const attendanceList = attendanceRows as DbAttendanceRow[];
+  let attendanceList: DbAttendanceRow[] = [];
+  try {
+    const [attendanceRows] = await pool.query(
+      `SELECT status, date, created_at
+       FROM attendance
+       WHERE student_id = ?`,
+      [studentId]
+    );
+    attendanceList = attendanceRows as DbAttendanceRow[];
+  } catch (err) {
+    console.warn('Badges attendance query warning:', err);
+  }
 
   // 5. Fetch live game participation
-  const [liveGameRows] = await pool.query(
-    `SELECT game_id, result_status, created_at
-     FROM live_game_results
-     WHERE student_id = ?`,
-    [studentId]
-  );
-  const liveGamesList = liveGameRows as DbLiveGameRow[];
+  let liveGamesList: DbLiveGameRow[] = [];
+  try {
+    const [liveGameRows] = await pool.query(
+      `SELECT game_id, result_status
+       FROM live_game_results
+       WHERE student_id = ?`,
+      [studentId]
+    );
+    liveGamesList = liveGameRows as DbLiveGameRow[];
+  } catch (err) {
+    console.warn('Badges live_game_results query warning:', err);
+  }
 
   // 6. Fetch already stored student_badges
-  const [storedBadgeRows] = await pool.query(
-    `SELECT badge_id, earned_at
-     FROM student_badges
-     WHERE student_id = ?`,
-    [studentId]
-  );
   const storedBadgesMap = new Map<number, string>();
-  (storedBadgeRows as DbStoredBadgeRow[]).forEach((row) => {
-    storedBadgesMap.set(
-      Number(row.badge_id),
-      row.earned_at ? new Date(row.earned_at).toISOString() : new Date().toISOString()
+  try {
+    const [storedBadgeRows] = await pool.query(
+      `SELECT badge_id, earned_at
+       FROM student_badges
+       WHERE student_id = ?`,
+      [studentId]
     );
-  });
+    (storedBadgeRows as DbStoredBadgeRow[]).forEach((row) => {
+      storedBadgesMap.set(
+        Number(row.badge_id),
+        row.earned_at ? new Date(row.earned_at).toISOString() : new Date().toISOString()
+      );
+    });
+  } catch (err) {
+    console.warn('Badges student_badges query warning:', err);
+  }
 
   // --- Compute Metrics ---
   const readLessonsCount = lessonReads.length;

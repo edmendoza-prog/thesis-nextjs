@@ -8,31 +8,11 @@ import AvatarPickerModal from '@/app/components/AvatarPickerModal';
 import BadgeToast from '@/components/BadgeToast';
 
 // Clean SVG Line Icons (No emojis)
-function CalendarIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
 function ClockIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
-function UserIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
     </svg>
   );
 }
@@ -227,7 +207,6 @@ const navigation = [
 export default function StudentProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile>(sampleProfile);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -288,7 +267,7 @@ export default function StudentProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const response = await fetch('/api/student/profile');
+        const response = await fetch('/api/student/profile', { cache: 'no-store' });
         const data = await response.json();
         if (response.ok && data.profile) {
           setProfile({
@@ -360,8 +339,6 @@ export default function StudentProfilePage() {
         }
       } catch (error) {
         console.error('Student profile load error:', error);
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -831,17 +808,11 @@ export default function StudentProfilePage() {
             {(() => {
               const unlockedBadges = badges.filter((b) => b.unlocked);
               const lockedBadges = badges.filter((b) => !b.unlocked);
-              const recentUnlocked = [...unlockedBadges]
-                .sort((a, b) => {
-                  const tA = a.earnedAt ? new Date(a.earnedAt).getTime() : 0;
-                  const tB = b.earnedAt ? new Date(b.earnedAt).getTime() : 0;
-                  return tB - tA || a.id - b.id;
-                })
-                .slice(0, 4);
-
-              const upNextBadges = [...lockedBadges]
-                .sort((a, b) => b.progressPercent - a.progressPercent || a.exp - b.exp)
-                .slice(0, 4);
+              const recentUnlocked = [...unlockedBadges].sort((a, b) => {
+                const tA = a.earnedAt ? new Date(a.earnedAt).getTime() : 0;
+                const tB = b.earnedAt ? new Date(b.earnedAt).getTime() : 0;
+                return tB - tA || a.id - b.id;
+              });
 
               const filteredAllBadges =
                 badgeFilter === 'unlocked'
@@ -955,61 +926,16 @@ export default function StudentProfilePage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="py-8">
-                      <div className="flex flex-col items-center justify-center text-center mb-6">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 mb-3 shadow-2xs">
-                          <MedalIcon className="w-7 h-7 text-amber-500" />
-                        </div>
-                        <h3 className="text-base font-bold text-slate-800">
-                          No badges unlocked yet — here are your closest badges to earn!
-                        </h3>
-                        <p className="text-xs sm:text-sm text-slate-500 max-w-lg mt-1 leading-relaxed">
-                          Complete a classroom lesson or submit a homework quiz to unlock your first badge and earn bonus EXP.
-                        </p>
+                    <div className="py-10 flex flex-col items-center justify-center text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 mb-3 shadow-2xs">
+                        <MedalIcon className="w-7 h-7 text-amber-500" />
                       </div>
-
-                      {upNextBadges.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {upNextBadges.map((badge) => (
-                            <div
-                              key={badge.id}
-                              className="flex flex-col items-center text-center rounded-2xl border border-slate-200 bg-slate-50/60 p-4 transition hover:bg-white hover:border-slate-300 hover:shadow-xs"
-                            >
-                              <div className="flex w-full items-center justify-between mb-1">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                  Up Next
-                                </span>
-                                <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-extrabold text-amber-700">
-                                  +{badge.exp} EXP
-                                </span>
-                              </div>
-                              <img
-                                src={badge.icon}
-                                alt={badge.name}
-                                className="my-2 h-20 w-20 object-contain opacity-85 drop-shadow-xs"
-                              />
-                              <h4 className="font-heading text-sm font-bold text-slate-800">
-                                {badge.name}
-                              </h4>
-                              <p className="mt-1 text-[11px] text-slate-500 line-clamp-2">
-                                {badge.description}
-                              </p>
-                              <div className="mt-3 w-full space-y-1">
-                                <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
-                                  <span>{badge.progressLabel}</span>
-                                  <span>{badge.progressPercent}%</span>
-                                </div>
-                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                                  <div
-                                    className="h-full rounded-full bg-[#0f6b5a]"
-                                    style={{ width: `${badge.progressPercent}%` }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <h3 className="text-base font-bold text-slate-800">
+                        No badges earned yet
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-500 max-w-md mt-1 leading-relaxed">
+                        Your earned badges will appear here automatically once you achieve them by reading lessons, completing assessments, and participating in class.
+                      </p>
                     </div>
                   )}
 
