@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUser, getCurrentUserId } from '@/lib/auth';
 import { getStudentBadgesAndExp, BADGE_CATALOG, calculateLevelFromExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
@@ -26,21 +26,52 @@ const emptyProfile: StudentProfile = {
   avatarSeed: '',
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
+    const user = await getCurrentUser();
+    if (!user?.id) {
       return NextResponse.json({ profile: emptyProfile, error: 'Not authenticated' }, { status: 401 });
     }
 
-    const [rows] = await pool.query(`
+    const { searchParams } = new URL(request.url);
+    const requestedStudentId = searchParams.get('studentId')?.trim();
+
+    let querySql = `
       SELECT u.id AS user_id, u.name, u.email, u.student_number,
         u.guardian_name, u.guardian_contact, u.birth_date, u.avatar_seed,
         COALESCE(u.life_span, 100) AS life_span
       FROM users u
       WHERE u.id = ? AND u.user_type = 'student'
       LIMIT 1
-    `, [userId]);
+    `;
+    let queryParams: (string | number)[] = [user.id];
+
+    if (requestedStudentId) {
+      const numericId = Number(requestedStudentId);
+      if (Number.isInteger(numericId) && numericId > 0) {
+        querySql = `
+          SELECT u.id AS user_id, u.name, u.email, u.student_number,
+            u.guardian_name, u.guardian_contact, u.birth_date, u.avatar_seed,
+            COALESCE(u.life_span, 100) AS life_span
+          FROM users u
+          WHERE (u.id = ? OR u.student_number = ?) AND u.user_type = 'student'
+          LIMIT 1
+        `;
+        queryParams = [numericId, requestedStudentId];
+      } else {
+        querySql = `
+          SELECT u.id AS user_id, u.name, u.email, u.student_number,
+            u.guardian_name, u.guardian_contact, u.birth_date, u.avatar_seed,
+            COALESCE(u.life_span, 100) AS life_span
+          FROM users u
+          WHERE (u.student_number = ? OR u.email = ?) AND u.user_type = 'student'
+          LIMIT 1
+        `;
+        queryParams = [requestedStudentId, requestedStudentId];
+      }
+    }
+
+    const [rows] = await pool.query(querySql, queryParams);
     const student = (rows as any[])[0];
 
     if (!student) {

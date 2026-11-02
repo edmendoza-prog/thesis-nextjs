@@ -26,6 +26,10 @@ type StudentRecord = {
   userId?: number;
   name: string;
   email?: string;
+  studentNumber?: string;
+  guardianName?: string;
+  guardianContact?: string;
+  birthDate?: string;
   avatarSeed?: string;
   lifeSpan?: number;
   hearts?: number;
@@ -34,6 +38,58 @@ type StudentRecord = {
   status: 'Good' | 'Needs Improvement' | 'Excellent';
   attendance: AttendanceCell[];
   assessments: AssessmentCell[];
+};
+
+type BadgeItem = {
+  id: number;
+  slug: string;
+  name: string;
+  category: string;
+  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+  exp: number;
+  icon: string;
+  description: string;
+  requirementText: string;
+  unlocked: boolean;
+  earnedAt: string | null;
+  progressCurrent: number;
+  progressTarget: number;
+  progressPercent: number;
+  progressLabel: string;
+};
+
+type ExpSummary = {
+  totalExp: number;
+  badgeExp: number;
+  lessonExp: number;
+  assessmentExp: number;
+  attendanceExp: number;
+  maxPossibleBadgeExp: number;
+  level: number;
+  levelTitle: string;
+  currentLevelExp: number;
+  nextLevelExp: number;
+  expToNextLevel: number;
+  levelProgressPercent: number;
+  unlockedCount: number;
+  totalBadgesCount: number;
+};
+
+const defaultExpSummary: ExpSummary = {
+  totalExp: 0,
+  badgeExp: 0,
+  lessonExp: 0,
+  assessmentExp: 0,
+  attendanceExp: 0,
+  maxPossibleBadgeExp: 4550,
+  level: 1,
+  levelTitle: 'Novice Explorer',
+  currentLevelExp: 0,
+  nextLevelExp: 150,
+  expToNextLevel: 150,
+  levelProgressPercent: 0,
+  unlockedCount: 0,
+  totalBadgesCount: 27,
 };
 
 type SectionItem = {
@@ -159,6 +215,77 @@ function ClassRecordContent() {
   } | null>(null);
   const [profileModalStudent, setProfileModalStudent] = useState<StudentRecord | null>(null);
   const [profileModalTab, setProfileModalTab] = useState<'overview' | 'assessments' | 'attendance'>('overview');
+  const [studentProfileDetails, setStudentProfileDetails] = useState<{
+    name: string;
+    email: string;
+    studentNumber: string;
+    guardianName: string;
+    guardianContact: string;
+    birthDate: string;
+    avatarSeed: string;
+  } | null>(null);
+  const [studentBadges, setStudentBadges] = useState<BadgeItem[]>([]);
+  const [studentExpSummary, setStudentExpSummary] = useState<ExpSummary>(defaultExpSummary);
+  const [showAllBadges, setShowAllBadges] = useState(false);
+  const [badgeFilter, setBadgeFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
+
+  useEffect(() => {
+    if (!profileModalStudent) {
+      setStudentProfileDetails(null);
+      setStudentBadges([]);
+      setStudentExpSummary(defaultExpSummary);
+      setShowAllBadges(false);
+      setBadgeFilter('all');
+      return;
+    }
+
+    let cancelled = false;
+    const studentRef = profileModalStudent;
+    setStudentProfileDetails({
+      name: studentRef.name || '',
+      email: studentRef.email || '',
+      studentNumber: studentRef.studentNumber || studentRef.id || '',
+      guardianName: studentRef.guardianName || '',
+      guardianContact: studentRef.guardianContact || '',
+      birthDate: studentRef.birthDate || '',
+      avatarSeed: studentRef.avatarSeed || studentRef.id || 'Student',
+    });
+
+    async function fetchStudentProfile() {
+      try {
+        const lookupId = studentRef.userId || studentRef.id;
+        const res = await fetch(`/api/student/profile?studentId=${encodeURIComponent(String(lookupId))}`, {
+          cache: 'no-store',
+        });
+        const data = await res.json();
+        if (cancelled || !res.ok) return;
+        if (data.profile) {
+          setStudentProfileDetails({
+            name: data.profile.name || studentRef.name || '',
+            email: data.profile.email || studentRef.email || '',
+            studentNumber: data.profile.studentNumber || studentRef.id || '',
+            guardianName: data.profile.guardianName || '',
+            guardianContact: data.profile.guardianContact || '',
+            birthDate: data.profile.birthDate || '',
+            avatarSeed: data.profile.avatarSeed || studentRef.avatarSeed || studentRef.id || 'Student',
+          });
+        }
+        if (Array.isArray(data.badges)) {
+          setStudentBadges(data.badges);
+        }
+        if (data.expSummary) {
+          setStudentExpSummary(data.expSummary);
+        }
+      } catch (err) {
+        console.error('Failed to load student profile details:', err);
+      }
+    }
+
+    fetchStudentProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [profileModalStudent]);
 
   const handleStudentContextMenu = (e: React.MouseEvent, student: StudentRecord) => {
     e.preventDefault();
@@ -2240,291 +2367,646 @@ function ClassRecordContent() {
           </div>
         )}
 
-        {/* Student Profile Pop-Up Modal */}
+        {/* Student Profile Pop-Up Modal (Student Profile View) */}
         {profileModalStudent && (() => {
           const student = profileModalStudent;
-          const markedAttendance = student.attendance.filter((a) => a.status && a.status !== 'unmarked');
-          const presentCount = student.attendance.filter((a) => a.status === 'present').length;
-          const lateCount = student.attendance.filter((a) => a.status === 'late').length;
-          const absentCount = student.attendance.filter((a) => a.status === 'absent').length;
-          const attendanceRate = markedAttendance.length > 0
-            ? Math.round(((presentCount + lateCount * 0.8) / markedAttendance.length) * 100)
-            : 100;
-          const completedAssessments = student.assessments.filter((a) => a.score != null);
-          const heartsCount = student.hearts ?? 5;
+          const profileData = studentProfileDetails || {
+            name: student.name || '',
+            email: student.email || '',
+            studentNumber: student.studentNumber || student.id || '',
+            guardianName: student.guardianName || '',
+            guardianContact: student.guardianContact || '',
+            birthDate: student.birthDate || '',
+            avatarSeed: student.avatarSeed || student.id || 'Student',
+          };
+          const effectiveAvatarSeed =
+            profileData.avatarSeed ||
+            profileData.studentNumber ||
+            student.id ||
+            profileData.name ||
+            'Oliver';
+
+          const unlockedBadges = studentBadges.filter((b) => b.unlocked);
+          const lockedBadges = studentBadges.filter((b) => !b.unlocked);
+          const sortedUnlocked = [...unlockedBadges].sort((a, b) => {
+            const tA = a.earnedAt ? new Date(a.earnedAt).getTime() : 0;
+            const tB = b.earnedAt ? new Date(b.earnedAt).getTime() : 0;
+            return tB - tA || a.id - b.id;
+          });
+          // Display 4 recent badges (unlocked first, then up-next locked if fewer than 4 unlocked)
+          const recentFourBadges = [
+            ...sortedUnlocked,
+            ...lockedBadges.sort((a, b) => b.progressPercent - a.progressPercent || a.id - b.id),
+          ].slice(0, 4);
+          const recentFourIds = new Set(recentFourBadges.map((b) => b.id));
+          const remainingBadges = studentBadges.filter((b) => !recentFourIds.has(b.id));
+
+          const filteredAllBadges =
+            badgeFilter === 'unlocked'
+              ? unlockedBadges
+              : badgeFilter === 'locked'
+                ? lockedBadges
+                : remainingBadges;
+
+          const getRarityStyles = (rarity: BadgeItem['rarity']) => {
+            switch (rarity) {
+              case 'Legendary':
+                return 'bg-amber-100 text-amber-900 border-amber-300';
+              case 'Epic':
+                return 'bg-purple-100 text-purple-800 border-purple-300';
+              case 'Rare':
+                return 'bg-sky-100 text-sky-800 border-sky-300';
+              case 'Uncommon':
+                return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+              default:
+                return 'bg-slate-100 text-slate-700 border-slate-200';
+            }
+          };
 
           return (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-150"
+              className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
               onClick={() => setProfileModalStudent(null)}
             >
               <div
-                className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden my-6 animate-in zoom-in-95 duration-150"
+                className="w-full max-w-5xl rounded-[24px] bg-[#edf2f0] p-4 sm:p-7 shadow-2xl border border-slate-200/90 my-4 space-y-6 animate-in zoom-in-95 duration-150 text-slate-800"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Modal Top Hero Header */}
-                <div className="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-6 sm:p-7 text-white">
-                  <button
-                    type="button"
-                    onClick={() => setProfileModalStudent(null)}
-                    className="absolute top-5 right-5 h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
-                    title="Close modal"
+                {/* ==================== 1. IDENTITY BANNER (Full-Width Card) ==================== */}
+                <section className="overflow-hidden rounded-[20px] border border-slate-200/90 bg-white shadow-sm">
+                  {/* Teal Banner Strip with Subtle Diamond Pattern */}
+                  <div
+                    className="h-32 sm:h-44 w-full relative"
+                    style={{
+                      backgroundColor: '#0f6b5a',
+                      backgroundImage: `
+                        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+                        linear-gradient(225deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+                        linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+                        linear-gradient(315deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%)
+                      `,
+                      backgroundPosition: '24px 0, 24px 0, 0 0, 0 0',
+                      backgroundSize: '48px 48px',
+                      backgroundRepeat: 'repeat',
+                    }}
                   >
-                    <Icon type="x" className="h-5 w-5" />
-                  </button>
+                    {/* Close Button inside top-left or top-right */}
+                    <button
+                      type="button"
+                      onClick={() => setProfileModalStudent(null)}
+                      className="absolute top-4 right-4 sm:top-6 sm:right-6 h-10 w-10 rounded-full bg-black/30 hover:bg-black/45 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition cursor-pointer z-10"
+                      title="Close profile"
+                    >
+                      <Icon type="x" className="h-5 w-5" />
+                    </button>
 
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-                    <div className="relative">
-                      <div className="h-20 w-20 sm:h-22 sm:w-22 rounded-3xl border-3 border-white/90 bg-white/20 backdrop-blur-xs p-1 shadow-xl overflow-hidden shrink-0">
-                        <UserAvatar seed={student.avatarSeed || student.id} size={88} className="h-full w-full object-cover rounded-2xl" />
+                    {/* Top-Right Level & Total EXP Pill inside Banner */}
+                    <div className="absolute top-4 right-16 sm:top-6 sm:right-20 flex items-center gap-2.5 rounded-2xl bg-black/30 backdrop-blur-md border border-white/20 px-4 py-2 text-white shadow-lg">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-slate-950 font-black text-sm shadow-xs">
+                        Lv.{studentExpSummary.level}
                       </div>
-                      <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white text-xs font-bold border-2 border-white shadow-sm" title="Active Student">
-                        ✓
-                      </span>
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 leading-none">
+                          {studentExpSummary.levelTitle}
+                        </p>
+                        <p className="text-sm sm:text-base font-extrabold text-white leading-tight mt-0.5">
+                          {studentExpSummary.totalExp.toLocaleString()}{' '}
+                          <span className="text-xs font-bold text-amber-300">EXP</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Banner Lower Area: Overlapping Avatar + Student Name & Grade */}
+                  <div className="relative px-6 sm:px-10 pb-7 pt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    {/* Circular Avatar overlapping banner line */}
+                    <div className="relative -mt-16 sm:-mt-24 mb-2 sm:mb-0 shrink-0 self-start">
+                      <div className="relative flex h-28 w-28 sm:h-36 sm:w-36 items-center justify-center rounded-full border-4 border-white bg-slate-100 shadow-md overflow-hidden">
+                        <UserAvatar
+                          seed={effectiveAvatarSeed}
+                          size={144}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     </div>
 
-                    <div className="text-center sm:text-left flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/15 text-white/95 text-xs font-bold backdrop-blur-xs border border-white/20">
-                          <span>🎓</span>
-                          <span>{selectedClass ? `${selectedClass.name} • ${selectedSection?.name}` : 'Student Profile'}</span>
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-500/80 text-white text-xs font-extrabold border border-white/20">
-                          <span>❤️</span>
-                          <span>{heartsCount} / 5 Life</span>
+                    {/* Student Full Name and Grade */}
+                    <div className="sm:ml-6 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight truncate">
+                          {profileData.name}
+                        </h1>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-extrabold text-amber-800 shadow-2xs">
+                          ⚡ Level {studentExpSummary.level} · {studentExpSummary.levelTitle}
                         </span>
                       </div>
-
-                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">
-                        {student.name}
-                      </h2>
-
-                      <div className="mt-1.5 flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-indigo-100 font-medium">
-                        <span className="font-mono bg-black/20 px-2 py-0.5 rounded-md text-white/90">
-                          ID: {student.id}
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <span className="text-xs sm:text-sm font-semibold text-slate-600">
+                          {selectedClass ? `${selectedClass.name} · ${selectedSection?.name} · Active student` : 'Active student'}
                         </span>
-                        {student.email && (
-                          <span className="text-white/80 truncate max-w-xs">
-                            ✉️ {student.email}
+                        <span
+                          className="inline-block h-2 w-2 rounded-full bg-emerald-500 shadow-xs"
+                          title="Active Account"
+                        />
+                        <span className="text-slate-300">•</span>
+                        <span className="text-xs font-bold text-[#0f6b5a]">
+                          {studentExpSummary.unlockedCount} / {studentExpSummary.totalBadgesCount || 27} Badges Unlocked
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Student EXP & Level Progress Strip */}
+                  <div className="border-t border-slate-100 bg-slate-50/70 px-6 sm:px-10 py-5">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
+                          <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                            <Icon type="sparkles" className="w-4 h-4 text-amber-500" />
+                            <span>
+                              Level {studentExpSummary.level} Progress ({studentExpSummary.levelTitle})
+                            </span>
                           </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick 4 Stats Metric Ribbon */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-4 bg-slate-50/90 border-b border-slate-100">
-                  <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Overall Grade</p>
-                    <p className={`text-xl font-black mt-0.5 ${
-                      student.percentage >= 90 ? 'text-emerald-600' : student.percentage >= 75 ? 'text-indigo-600' : 'text-amber-600'
-                    }`}>
-                      {student.percentage}%
-                    </p>
-                    <p className="text-[11px] font-bold text-slate-500 mt-0.5">{student.status}</p>
-                  </div>
-
-                  <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Attendance Rate</p>
-                    <p className="text-xl font-black text-slate-900 mt-0.5">
-                      {attendanceRate}%
-                    </p>
-                    <p className="text-[11px] font-bold text-slate-500 mt-0.5">
-                      {presentCount + lateCount} / {markedAttendance.length || student.attendance.length} Days
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assessments</p>
-                    <p className="text-xl font-black text-slate-900 mt-0.5">
-                      {completedAssessments.length} / {student.assessments.length || assessmentColumns.length}
-                    </p>
-                    <p className="text-[11px] font-bold text-slate-500 mt-0.5">Activities Done</p>
-                  </div>
-
-                  <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Life Standing</p>
-                    <div className="flex items-center gap-0.5 mt-1 text-rose-500 text-sm">
-                      {[1, 2, 3, 4, 5].map((h) => (
-                        <span key={h}>{h <= heartsCount ? '❤️' : '🤍'}</span>
-                      ))}
-                    </div>
-                    <p className="text-[11px] font-bold text-slate-500 mt-0.5">{heartsCount >= 5 ? 'Full Life' : heartsCount >= 3 ? 'Good Standing' : 'Needs Support'}</p>
-                  </div>
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="flex items-center border-b border-slate-100 px-6 pt-3 bg-white">
-                  <button
-                    type="button"
-                    onClick={() => setProfileModalTab('overview')}
-                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition cursor-pointer ${
-                      profileModalTab === 'overview'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    📋 Profile Overview
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setProfileModalTab('assessments')}
-                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition cursor-pointer ${
-                      profileModalTab === 'assessments'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    🎯 Assessments ({student.assessments.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setProfileModalTab('attendance')}
-                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition cursor-pointer ${
-                      profileModalTab === 'attendance'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    📅 Attendance History ({student.attendance.length})
-                  </button>
-                </div>
-
-                {/* Tab Body */}
-                <div className="p-6 max-h-[380px] overflow-y-auto space-y-4">
-                  {profileModalTab === 'overview' && (
-                    <div className="space-y-4">
-                      <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                        <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-3">Academic Performance</h4>
-                        <div className="flex items-center justify-between text-xs mb-1.5 font-bold text-slate-700">
-                          <span>Cumulative Grade Average</span>
-                          <span className={student.percentage >= 90 ? 'text-emerald-600' : 'text-indigo-600'}>{student.percentage}%</span>
+                          <span className="font-extrabold text-[#0f6b5a]">
+                            {studentExpSummary.currentLevelExp} / {studentExpSummary.nextLevelExp} EXP{' '}
+                            <span className="text-slate-400 font-semibold text-xs">
+                              ({studentExpSummary.expToNextLevel} EXP to Level {studentExpSummary.level + 1})
+                            </span>
+                          </span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                        <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200/90 p-0.5 shadow-inner">
                           <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              student.percentage >= 90 ? 'bg-emerald-500' : student.percentage >= 75 ? 'bg-indigo-600' : 'bg-amber-500'
-                            }`}
-                            style={{ width: `${Math.min(100, Math.max(5, student.percentage))}%` }}
+                            className="h-full rounded-full bg-linear-to-r from-[#0f6b5a] via-emerald-500 to-amber-400 transition-all duration-500"
+                            style={{ width: `${Math.max(4, studentExpSummary.levelProgressPercent)}%` }}
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                          <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Classroom Assignment</h4>
-                          <p className="text-sm font-bold text-slate-900">{selectedClass?.name || 'Assigned Class'}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">Section: {selectedSection?.name || 'Main'}</p>
-                          <p className="text-[11px] text-slate-400 mt-2">Active Enrollment • Official Gradebook</p>
+                      {/* EXP Source Breakdown Pills */}
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        <div className="rounded-xl bg-white border border-slate-200/90 px-3 py-2 text-xs shadow-2xs">
+                          <span className="text-slate-400 font-semibold block text-[10px] uppercase">Badge EXP</span>
+                          <span className="font-extrabold text-amber-600">+{studentExpSummary.badgeExp} EXP</span>
                         </div>
-
-                        <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                          <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Attendance Summary</h4>
-                          <div className="flex items-center gap-2 flex-wrap text-xs font-bold">
-                            <span className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">✓ {presentCount} Present</span>
-                            <span className="px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700">⏰ {lateCount} Late</span>
-                            <span className="px-2 py-0.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700">✕ {absentCount} Absent</span>
-                          </div>
+                        <div className="rounded-xl bg-white border border-slate-200/90 px-3 py-2 text-xs shadow-2xs">
+                          <span className="text-slate-400 font-semibold block text-[10px] uppercase">Lessons (+20/ea)</span>
+                          <span className="font-extrabold text-emerald-700">+{studentExpSummary.lessonExp} EXP</span>
+                        </div>
+                        <div className="rounded-xl bg-white border border-slate-200/90 px-3 py-2 text-xs shadow-2xs">
+                          <span className="text-slate-400 font-semibold block text-[10px] uppercase">Assessments</span>
+                          <span className="font-extrabold text-indigo-600">+{studentExpSummary.assessmentExp} EXP</span>
+                        </div>
+                        <div className="rounded-xl bg-white border border-slate-200/90 px-3 py-2 text-xs shadow-2xs">
+                          <span className="text-slate-400 font-semibold block text-[10px] uppercase">Participation</span>
+                          <span className="font-extrabold text-rose-600">+{studentExpSummary.attendanceExp} EXP</span>
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
+                </section>
 
-                  {profileModalTab === 'assessments' && (
-                    <div className="space-y-2.5">
-                      {student.assessments.length === 0 ? (
-                        <div className="text-center py-8 text-slate-400 text-xs font-bold">
-                          No activities or assessments recorded yet for this student.
-                        </div>
-                      ) : (
-                        student.assessments.map((a, i) => {
-                          const hasScore = a.score != null;
-                          const pct = a.percentage ?? (hasScore && a.maxScore ? Math.round((a.score! / a.maxScore) * 100) : null);
-                          return (
-                            <div key={a.id || i} className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 hover:border-indigo-200 bg-white transition shadow-2xs">
-                              <div>
-                                <p className="text-sm font-bold text-slate-900">{a.title}</p>
-                                <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                                  {hasScore ? `Score: ${a.score} / ${a.maxScore || 100} points` : 'Not submitted / unmarked'}
-                                </p>
-                              </div>
-                              <div>
-                                {pct != null ? (
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-extrabold border ${
-                                    pct >= 90
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                      : pct >= 75
-                                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                      : 'bg-amber-50 text-amber-700 border-amber-200'
-                                  }`}>
-                                    {pct}%
-                                  </span>
-                                ) : (
-                                  <span className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold">
-                                    Unscored
-                                  </span>
-                                )}
-                              </div>
+                {/* ==================== 2. RECENT BADGES & ACHIEVEMENTS GALLERY ==================== */}
+                <section className="rounded-[20px] border border-slate-200/90 bg-white p-6 sm:p-8 shadow-sm">
+                  {/* Header Row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+                    <div>
+                      <div className="flex items-center gap-2.5">
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                          Recent badges &amp; EXP milestones
+                        </h2>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-extrabold text-amber-700">
+                          ⚡ +{studentExpSummary.badgeExp} / {studentExpSummary.maxPossibleBadgeExp} Badge EXP
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        Read lessons, ace assessments, and attend class to unlock all {studentBadges.length || 27} badges and earn EXP!
+                      </p>
+                    </div>
+
+                    <span className="inline-flex items-center self-start sm:self-auto px-3.5 py-1.5 rounded-full text-xs font-bold text-[#0f6b5a] bg-emerald-50 border border-emerald-200">
+                      Unlocked {unlockedBadges.length} of {studentBadges.length || 27}
+                    </span>
+                  </div>
+
+                  {/* 4 Recent Badges Row */}
+                  {recentFourBadges.length > 0 ? (
+                    <div className="py-4">
+                      <div className="mb-2.5 flex items-center justify-between">
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
+                          ✨ Recent Badges (Showing 4 of {studentBadges.length || 27})
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {recentFourBadges.map((badge) => (
+                          <div
+                            key={badge.id}
+                            className={`group relative flex flex-col justify-between items-center text-center rounded-xl border p-3 transition-all ${
+                              badge.unlocked
+                                ? 'border-emerald-200/90 bg-linear-to-b from-emerald-50/50 via-white to-amber-50/30 shadow-2xs hover:shadow-sm'
+                                : 'border-slate-200 bg-slate-50/60'
+                            }`}
+                          >
+                            <div className="flex w-full items-center justify-between gap-1 mb-1">
+                              <span
+                                className={`rounded-full border px-2 py-0.5 text-[9px] font-extrabold uppercase ${getRarityStyles(
+                                  badge.rarity
+                                )}`}
+                              >
+                                {badge.rarity}
+                              </span>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                                  badge.unlocked
+                                    ? 'bg-amber-400/20 border border-amber-400/50 text-amber-800'
+                                    : 'bg-slate-200/80 text-slate-600'
+                                }`}
+                              >
+                                +{badge.exp} EXP
+                              </span>
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
 
-                  {profileModalTab === 'attendance' && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-500 pb-2 border-b border-slate-100">
-                        <span>Date Session</span>
-                        <span>Recorded Attendance Status</span>
-                      </div>
-                      {student.attendance.length === 0 ? (
-                        <div className="text-center py-8 text-slate-400 text-xs font-bold">
-                          No attendance sessions tracked in the current date range.
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {student.attendance.map((att, i) => {
-                            const st = att.status || 'unmarked';
-                            return (
-                              <div key={att.date || i} className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-white text-xs">
-                                <span className="font-mono font-bold text-slate-700">{att.date}</span>
-                                <span className={`px-2.5 py-0.5 rounded-lg font-bold capitalize border ${
-                                  st === 'present'
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                    : st === 'late'
-                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                    : st === 'absent'
-                                    ? 'bg-rose-50 border-rose-200 text-rose-700'
-                                    : st === 'excused'
-                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                                }`}>
-                                  {st === 'present' ? '✓ Present' : st === 'late' ? '⏰ Late' : st === 'absent' ? '✕ Absent' : st === 'excused' ? '🛡️ Excused' : '— Unmarked'}
+                            <div className="relative my-1 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center">
+                              <img
+                                src={badge.icon}
+                                alt={badge.name}
+                                className={`h-14 w-14 sm:h-16 sm:w-16 object-contain transition-transform duration-300 group-hover:scale-105 ${
+                                  badge.unlocked ? 'drop-shadow-sm opacity-100' : 'opacity-55 grayscale'
+                                }`}
+                              />
+                              {!badge.unlocked && (
+                                <span
+                                  className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-white text-[10px] shadow-2xs border border-white"
+                                  title="Locked Badge"
+                                >
+                                  🔒
                                 </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                              )}
+                            </div>
+
+                            <div className="w-full">
+                              <h3 className="mt-1 font-heading text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">
+                                {badge.name}
+                              </h3>
+                              <p className="mt-0.5 text-[11px] text-slate-600 line-clamp-2 leading-tight">
+                                {badge.description}
+                              </p>
+                            </div>
+
+                            <div className="mt-2.5 w-full pt-2 border-t border-slate-200/70">
+                              {badge.unlocked ? (
+                                <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-700">
+                                  <Icon type="check" className="w-3 h-3 text-emerald-600" />
+                                  <span>
+                                    Earned{' '}
+                                    {badge.earnedAt
+                                      ? new Date(badge.earnedAt).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                        })
+                                      : 'Recently'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                    <span className="truncate pr-1">{badge.progressLabel}</span>
+                                    <span className="text-[#0f6b5a] shrink-0">{badge.progressPercent}%</span>
+                                  </div>
+                                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                                    <div
+                                      className="h-full rounded-full bg-[#0f6b5a]"
+                                      style={{ width: `${badge.progressPercent}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-8 flex flex-col items-center justify-center text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 mb-2.5 shadow-2xs">
+                        <Icon type="award" className="w-6 h-6 text-amber-500" />
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-800">
+                        No badges earned yet
+                      </h3>
+                      <p className="text-xs text-slate-500 max-w-md mt-1 leading-relaxed">
+                        Earned badges will appear here automatically once achieved by reading lessons, completing assessments, and participating in class.
+                      </p>
                     </div>
                   )}
-                </div>
 
-                {/* Modal Footer */}
-                <div className="flex items-center justify-between p-4 px-6 border-t border-slate-100 bg-slate-50">
-                  <span className="text-xs text-slate-400 font-medium">
-                    💡 Tip: Right-click any student row in Class Record to view profile
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setProfileModalStudent(null)}
-                    className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs sm:text-sm px-5 py-2.5 shadow-md shadow-indigo-600/20 transition cursor-pointer"
-                  >
-                    Close Profile
-                  </button>
-                </div>
+                  {/* Dropdown Toggle: See the rest of badges */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllBadges(!showAllBadges)}
+                      className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200/70 transition-all cursor-pointer shadow-2xs"
+                      aria-expanded={showAllBadges}
+                    >
+                      <span>
+                        {showAllBadges ? 'Less' : 'More'}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 text-slate-600 transition-transform duration-300 ${
+                          showAllBadges ? 'rotate-180' : 'rotate-0'
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+
+                    {/* Rest of Badges Catalog Grid when expanded */}
+                    {showAllBadges && (
+                      <div className="w-full mt-5 space-y-4 animate-in fade-in duration-200">
+                        {/* Filter Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-2.5 sm:px-4 rounded-xl border border-slate-200/80">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setBadgeFilter('all')}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                badgeFilter === 'all'
+                                  ? 'bg-[#0f6b5a] text-white shadow-xs'
+                                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                              }`}
+                            >
+                              Rest of Badges ({remainingBadges.length})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setBadgeFilter('unlocked')}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                badgeFilter === 'unlocked'
+                                  ? 'bg-emerald-600 text-white shadow-xs'
+                                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                              }`}
+                            >
+                              All Unlocked ({unlockedBadges.length})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setBadgeFilter('locked')}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                badgeFilter === 'locked'
+                                  ? 'bg-slate-800 text-white shadow-xs'
+                                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                              }`}
+                            >
+                              Locked ({lockedBadges.length})
+                            </button>
+                          </div>
+
+                          <span className="text-[11px] font-semibold text-slate-500">
+                            Each badge awards bonus EXP toward Student Level!
+                          </span>
+                        </div>
+
+                        {filteredAllBadges.length === 0 ? (
+                          <div className="text-center py-6 bg-slate-50 rounded-xl border border-slate-200/70">
+                            <p className="text-xs font-bold text-slate-600">
+                              No badges match this filter yet.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {filteredAllBadges.map((badge) => (
+                              <div
+                                key={badge.id}
+                                className={`group relative flex flex-col justify-between rounded-xl border p-3.5 transition-all ${
+                                  badge.unlocked
+                                    ? 'border-emerald-300 bg-linear-to-b from-emerald-50/40 via-white to-amber-50/20 shadow-2xs'
+                                    : 'border-slate-200 bg-slate-50/60'
+                                }`}
+                              >
+                                <div>
+                                  {/* Top Row: Category/Rarity & EXP */}
+                                  <div className="flex items-center justify-between gap-1 mb-2">
+                                    <span
+                                      className={`rounded-full border px-2 py-0.5 text-[9px] font-extrabold uppercase ${getRarityStyles(
+                                        badge.rarity
+                                      )}`}
+                                    >
+                                      {badge.rarity}
+                                    </span>
+                                    <span
+                                      className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                                        badge.unlocked
+                                          ? 'bg-amber-400/25 text-amber-900 border border-amber-400/60'
+                                          : 'bg-slate-200/80 text-slate-700'
+                                      }`}
+                                    >
+                                      +{badge.exp} EXP
+                                    </span>
+                                  </div>
+
+                                  {/* Badge Image */}
+                                  <div className="my-1 flex flex-col items-center justify-center">
+                                    <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center">
+                                      <img
+                                        src={badge.icon}
+                                        alt={badge.name}
+                                        className={`h-14 w-14 sm:h-16 sm:w-16 object-contain transition-transform duration-300 group-hover:scale-105 ${
+                                          badge.unlocked
+                                            ? 'drop-shadow-sm opacity-100'
+                                            : 'opacity-55 grayscale'
+                                        }`}
+                                      />
+                                      {!badge.unlocked && (
+                                        <span
+                                          className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-white text-[10px] shadow-2xs border border-white"
+                                          title="Locked Badge"
+                                        >
+                                          🔒
+                                        </span>
+                                      )}
+                                      {badge.unlocked && (
+                                        <span
+                                          className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] shadow-2xs border border-white"
+                                          title="Unlocked!"
+                                        >
+                                          ✓
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Badge Title & Description */}
+                                  <div className="text-center mt-1.5">
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                      {badge.category}
+                                    </span>
+                                    <h4 className="font-heading text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 line-clamp-1">
+                                      {badge.name}
+                                    </h4>
+                                    <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2 leading-tight">
+                                      {badge.description}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Bottom Progress / Status Bar */}
+                                <div className="mt-2.5 pt-2 border-t border-slate-200/70">
+                                  {badge.unlocked ? (
+                                    <div className="flex items-center justify-between text-[10px] font-bold text-emerald-700">
+                                      <span className="flex items-center gap-1">
+                                        <Icon type="check" className="w-3 h-3 text-emerald-600" />
+                                        Unlocked!
+                                      </span>
+                                      <span className="text-[10px] text-slate-500">
+                                        {badge.earnedAt
+                                          ? new Date(badge.earnedAt).toLocaleDateString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                            })
+                                          : 'Earned'}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span className="truncate pr-1">{badge.progressLabel}</span>
+                                        <span className="text-[#0f6b5a] shrink-0">{badge.progressPercent}%</span>
+                                      </div>
+                                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                                        <div
+                                          className="h-full rounded-full bg-[#0f6b5a] transition-all duration-300"
+                                          style={{ width: `${badge.progressPercent}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* ==================== 3. PERSONAL INFORMATION (Card) ==================== */}
+                <section className="rounded-[20px] border border-slate-200/90 bg-white overflow-hidden shadow-sm">
+                  {/* Header Row */}
+                  <div className="p-6 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                        Personal information
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                        This information helps your teacher and school support you.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Two-Column Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 sm:p-8">
+                    {/* Field 1: Full name */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Full name
+                      </label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={profileData.name}
+                        className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Field 2: Email address */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Email address
+                      </label>
+                      <input
+                        type="email"
+                        readOnly
+                        value={profileData.email}
+                        className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Field 3: Student number */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Student number
+                      </label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={profileData.studentNumber}
+                        className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Field 4: Birth date */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Birth date
+                      </label>
+                      <input
+                        type="date"
+                        readOnly
+                        value={profileData.birthDate}
+                        className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Field 5: Guardian name */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Guardian name
+                      </label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={profileData.guardianName}
+                        placeholder="—"
+                        className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+                      />
+                    </div>
+
+                    {/* Field 6: Guardian contact */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Guardian contact
+                      </label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={profileData.guardianContact}
+                        placeholder="—"
+                        className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Footer Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:px-8 bg-[#f4f7f6] border-t border-slate-200/80 rounded-b-[20px]">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-600">
+                      Viewing student profile from Class Record.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => setProfileModalStudent(null)}
+                      className="inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-7 rounded-xl bg-[#0f6b5a] hover:bg-[#0c5547] active:bg-[#094136] text-white font-bold text-sm shadow-sm transition-all cursor-pointer"
+                    >
+                      <span>Close profile</span>
+                    </button>
+                  </div>
+                </section>
               </div>
             </div>
           );

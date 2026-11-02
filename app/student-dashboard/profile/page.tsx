@@ -808,18 +808,24 @@ export default function StudentProfilePage() {
             {(() => {
               const unlockedBadges = badges.filter((b) => b.unlocked);
               const lockedBadges = badges.filter((b) => !b.unlocked);
-              const recentUnlocked = [...unlockedBadges].sort((a, b) => {
+              const sortedUnlocked = [...unlockedBadges].sort((a, b) => {
                 const tA = a.earnedAt ? new Date(a.earnedAt).getTime() : 0;
                 const tB = b.earnedAt ? new Date(b.earnedAt).getTime() : 0;
                 return tB - tA || a.id - b.id;
               });
+              const recentFourBadges = [
+                ...sortedUnlocked,
+                ...lockedBadges.sort((a, b) => b.progressPercent - a.progressPercent || a.id - b.id),
+              ].slice(0, 4);
+              const recentFourIds = new Set(recentFourBadges.map((b) => b.id));
+              const remainingBadges = badges.filter((b) => !recentFourIds.has(b.id));
 
               const filteredAllBadges =
                 badgeFilter === 'unlocked'
                   ? unlockedBadges
                   : badgeFilter === 'locked'
                     ? lockedBadges
-                    : badges;
+                    : remainingBadges;
 
               const getRarityStyles = (rarity: BadgeItem['rarity']) => {
                 switch (rarity) {
@@ -859,98 +865,137 @@ export default function StudentProfilePage() {
                     </span>
                   </div>
 
-                  {/* Unlocked Recent Badges OR Up-Next Badges Preview */}
-                  {unlockedBadges.length > 0 ? (
-                    <div className="py-6">
-                      <div className="mb-3 flex items-center justify-between">
+                  {/* 4 Recent Badges Row */}
+                  {recentFourBadges.length > 0 ? (
+                    <div className="py-4">
+                      <div className="mb-2.5 flex items-center justify-between">
                         <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
-                          ✨ Recently Unlocked ({recentUnlocked.length})
+                          ✨ Recent Badges (Showing 4 of {badges.length || 27})
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {recentUnlocked.map((badge) => (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {recentFourBadges.map((badge) => (
                           <div
                             key={badge.id}
                             onClick={() =>
                               setActiveBadgeToast({
                                 badgeId: badge.slug || badge.id,
-                                description: badge.description || 'Achievement unlocked',
+                                description: badge.unlocked
+                                  ? badge.description || 'Achievement unlocked'
+                                  : `Locked · ${badge.progressLabel}`,
                                 xp: badge.exp,
                               })
                             }
                             title="Click to preview achievement toast"
-                            className="group relative flex flex-col items-center text-center rounded-2xl border-2 border-emerald-200/90 bg-linear-to-b from-emerald-50/50 via-white to-amber-50/30 p-5 shadow-xs transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                            className={`group relative flex flex-col justify-between items-center text-center rounded-xl border p-3 transition-all cursor-pointer ${
+                              badge.unlocked
+                                ? 'border-emerald-200/90 bg-linear-to-b from-emerald-50/50 via-white to-amber-50/30 shadow-2xs hover:shadow-sm hover:-translate-y-0.5'
+                                : 'border-slate-200 bg-slate-50/60 hover:bg-white'
+                            }`}
                           >
-                            <div className="flex w-full items-center justify-between mb-2">
+                            <div className="flex w-full items-center justify-between gap-1 mb-1">
                               <span
-                                className={`rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase ${getRarityStyles(
+                                className={`rounded-full border px-2 py-0.5 text-[9px] font-extrabold uppercase ${getRarityStyles(
                                   badge.rarity
                                 )}`}
                               >
                                 {badge.rarity}
                               </span>
-                              <span className="rounded-full bg-amber-400/20 border border-amber-400/50 px-2.5 py-0.5 text-xs font-black text-amber-800">
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                                  badge.unlocked
+                                    ? 'bg-amber-400/20 border border-amber-400/50 text-amber-800'
+                                    : 'bg-slate-200/80 text-slate-600'
+                                }`}
+                              >
                                 +{badge.exp} EXP
                               </span>
                             </div>
 
-                            <div className="relative my-2 flex h-24 w-24 items-center justify-center">
+                            <div className="relative my-1 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center">
                               <img
                                 src={badge.icon}
                                 alt={badge.name}
-                                className="h-24 w-24 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110"
+                                className={`h-14 w-14 sm:h-16 sm:w-16 object-contain transition-transform duration-300 group-hover:scale-105 ${
+                                  badge.unlocked ? 'drop-shadow-sm opacity-100' : 'opacity-55 grayscale'
+                                }`}
                               />
+                              {!badge.unlocked && (
+                                <span
+                                  className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-white text-[10px] shadow-2xs border border-white"
+                                  title="Locked Badge"
+                                >
+                                  🔒
+                                </span>
+                              )}
                             </div>
 
-                            <h3 className="mt-2 font-heading text-sm sm:text-base font-extrabold text-slate-900">
-                              {badge.name}
-                            </h3>
-                            <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                              {badge.description}
-                            </p>
+                            <div className="w-full">
+                              <h3 className="mt-1 font-heading text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">
+                                {badge.name}
+                              </h3>
+                              <p className="mt-0.5 text-[11px] text-slate-600 line-clamp-2 leading-tight">
+                                {badge.description}
+                              </p>
+                            </div>
 
-                            <div className="mt-4 w-full pt-2.5 border-t border-emerald-100 flex items-center justify-center gap-1.5 text-[11px] font-bold text-emerald-700">
-                              <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>
-                                Earned{' '}
-                                {badge.earnedAt
-                                  ? new Date(badge.earnedAt).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })
-                                  : 'Recently'}
-                              </span>
+                            <div className="mt-2.5 w-full pt-2 border-t border-slate-200/70">
+                              {badge.unlocked ? (
+                                <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-700">
+                                  <CheckIcon className="w-3 h-3 text-emerald-600" />
+                                  <span>
+                                    Earned{' '}
+                                    {badge.earnedAt
+                                      ? new Date(badge.earnedAt).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                        })
+                                      : 'Recently'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                    <span className="truncate pr-1">{badge.progressLabel}</span>
+                                    <span className="text-[#0f6b5a] shrink-0">{badge.progressPercent}%</span>
+                                  </div>
+                                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                                    <div
+                                      className="h-full rounded-full bg-[#0f6b5a]"
+                                      style={{ width: `${badge.progressPercent}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
-                    <div className="py-10 flex flex-col items-center justify-center text-center">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 mb-3 shadow-2xs">
-                        <MedalIcon className="w-7 h-7 text-amber-500" />
+                    <div className="py-8 flex flex-col items-center justify-center text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 mb-2.5 shadow-2xs">
+                        <MedalIcon className="w-6 h-6 text-amber-500" />
                       </div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-sm font-bold text-slate-800">
                         No badges earned yet
                       </h3>
-                      <p className="text-xs sm:text-sm text-slate-500 max-w-md mt-1 leading-relaxed">
+                      <p className="text-xs text-slate-500 max-w-md mt-1 leading-relaxed">
                         Your earned badges will appear here automatically once you achieve them by reading lessons, completing assessments, and participating in class.
                       </p>
                     </div>
                   )}
 
-                  {/* Dropdown Toggle: View all badges (27) */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-col items-center">
+                  {/* Dropdown Toggle: See the rest of badges */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-col items-center">
                     <button
                       type="button"
                       onClick={() => setShowAllBadges(!showAllBadges)}
-                      className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200/70 transition-all cursor-pointer shadow-2xs"
+                      className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200/70 transition-all cursor-pointer shadow-2xs"
                       aria-expanded={showAllBadges}
                     >
                       <span>
-                        {showAllBadges
-                          ? 'Hide all badges'
-                          : `View all ${badges.length || 27} badges (${unlockedBadges.length} unlocked)`}
+                        {showAllBadges ? 'Less' : 'More'}
                       </span>
                       <div
                         className={`transition-transform duration-300 ${
@@ -961,38 +1006,38 @@ export default function StudentProfilePage() {
                       </div>
                     </button>
 
-                    {/* Full 27-Badge Catalog Grid when expanded */}
+                    {/* Rest of Badges Catalog Grid when expanded */}
                     {showAllBadges && (
-                      <div className="w-full mt-6 space-y-5 animate-in fade-in duration-200">
+                      <div className="w-full mt-5 space-y-4 animate-in fade-in duration-200">
                         {/* Filter Bar */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 sm:px-5 rounded-2xl border border-slate-200/80">
-                          <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-2.5 sm:px-4 rounded-xl border border-slate-200/80">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <button
                               type="button"
                               onClick={() => setBadgeFilter('all')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                                 badgeFilter === 'all'
                                   ? 'bg-[#0f6b5a] text-white shadow-xs'
                                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                               }`}
                             >
-                              All Badges ({badges.length})
+                              Rest of Badges ({remainingBadges.length})
                             </button>
                             <button
                               type="button"
                               onClick={() => setBadgeFilter('unlocked')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                                 badgeFilter === 'unlocked'
                                   ? 'bg-emerald-600 text-white shadow-xs'
                                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                               }`}
                             >
-                              Unlocked ({unlockedBadges.length})
+                              All Unlocked ({unlockedBadges.length})
                             </button>
                             <button
                               type="button"
                               onClick={() => setBadgeFilter('locked')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                                 badgeFilter === 'locked'
                                   ? 'bg-slate-800 text-white shadow-xs'
                                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -1002,19 +1047,19 @@ export default function StudentProfilePage() {
                             </button>
                           </div>
 
-                          <span className="text-xs font-semibold text-slate-500">
+                          <span className="text-[11px] font-semibold text-slate-500">
                             Each badge awards bonus EXP toward your Student Level!
                           </span>
                         </div>
 
                         {filteredAllBadges.length === 0 ? (
-                          <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-200/70">
-                            <p className="text-sm font-bold text-slate-600">
+                          <div className="text-center py-6 bg-slate-50 rounded-xl border border-slate-200/70">
+                            <p className="text-xs font-bold text-slate-600">
                               No badges match this filter yet.
                             </p>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             {filteredAllBadges.map((badge) => (
                               <div
                                 key={badge.id}
@@ -1028,24 +1073,24 @@ export default function StudentProfilePage() {
                                   })
                                 }
                                 title="Click to preview achievement toast"
-                                className={`group relative flex flex-col justify-between rounded-2xl border p-5 transition-all cursor-pointer ${
+                                className={`group relative flex flex-col justify-between rounded-xl border p-3.5 transition-all cursor-pointer ${
                                   badge.unlocked
-                                    ? 'border-emerald-300 bg-linear-to-b from-emerald-50/40 via-white to-amber-50/20 shadow-sm hover:shadow-md'
+                                    ? 'border-emerald-300 bg-linear-to-b from-emerald-50/40 via-white to-amber-50/20 shadow-2xs hover:shadow-sm'
                                     : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300'
                                 }`}
                               >
                                 <div>
                                   {/* Top Row: Category/Rarity & EXP */}
-                                  <div className="flex items-center justify-between gap-2 mb-3">
+                                  <div className="flex items-center justify-between gap-1 mb-2">
                                     <span
-                                      className={`rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${getRarityStyles(
+                                      className={`rounded-full border px-2 py-0.5 text-[9px] font-extrabold uppercase ${getRarityStyles(
                                         badge.rarity
                                       )}`}
                                     >
                                       {badge.rarity}
                                     </span>
                                     <span
-                                      className={`rounded-full px-2.5 py-0.5 text-xs font-black ${
+                                      className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                                         badge.unlocked
                                           ? 'bg-amber-400/25 text-amber-900 border border-amber-400/60'
                                           : 'bg-slate-200/80 text-slate-700'
@@ -1056,20 +1101,20 @@ export default function StudentProfilePage() {
                                   </div>
 
                                   {/* Badge Image */}
-                                  <div className="my-2 flex flex-col items-center justify-center">
-                                    <div className="relative flex h-24 w-24 items-center justify-center">
+                                  <div className="my-1 flex flex-col items-center justify-center">
+                                    <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center">
                                       <img
                                         src={badge.icon}
                                         alt={badge.name}
-                                        className={`h-24 w-24 object-contain transition-transform duration-300 group-hover:scale-105 ${
+                                        className={`h-14 w-14 sm:h-16 sm:w-16 object-contain transition-transform duration-300 group-hover:scale-105 ${
                                           badge.unlocked
-                                            ? 'drop-shadow-md opacity-100'
+                                            ? 'drop-shadow-sm opacity-100'
                                             : 'opacity-55 grayscale group-hover:opacity-90 group-hover:grayscale-0'
                                         }`}
                                       />
                                       {!badge.unlocked && (
                                         <span
-                                          className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-white text-xs shadow-sm border-2 border-white"
+                                          className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-white text-[10px] shadow-2xs border border-white"
                                           title="Locked Badge"
                                         >
                                           🔒
@@ -1077,7 +1122,7 @@ export default function StudentProfilePage() {
                                       )}
                                       {badge.unlocked && (
                                         <span
-                                          className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white text-xs shadow-sm border-2 border-white"
+                                          className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] shadow-2xs border border-white"
                                           title="Unlocked!"
                                         >
                                           ✓
@@ -1087,28 +1132,28 @@ export default function StudentProfilePage() {
                                   </div>
 
                                   {/* Badge Title & Description */}
-                                  <div className="text-center mt-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                  <div className="text-center mt-1.5">
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                                       {badge.category}
                                     </span>
-                                    <h4 className="font-heading text-base font-extrabold text-slate-900 mt-0.5">
+                                    <h4 className="font-heading text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 line-clamp-1">
                                       {badge.name}
                                     </h4>
-                                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                    <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2 leading-tight">
                                       {badge.description}
                                     </p>
                                   </div>
                                 </div>
 
                                 {/* Bottom Progress / Status Bar */}
-                                <div className="mt-4 pt-3 border-t border-slate-200/70">
+                                <div className="mt-2.5 pt-2 border-t border-slate-200/70">
                                   {badge.unlocked ? (
-                                    <div className="flex items-center justify-between text-xs font-bold text-emerald-700">
+                                    <div className="flex items-center justify-between text-[10px] font-bold text-emerald-700">
                                       <span className="flex items-center gap-1">
-                                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                                        <CheckIcon className="w-3 h-3 text-emerald-600" />
                                         Unlocked!
                                       </span>
-                                      <span className="text-[11px] text-slate-500">
+                                      <span className="text-[10px] text-slate-500">
                                         {badge.earnedAt
                                           ? new Date(badge.earnedAt).toLocaleDateString('en-US', {
                                               month: 'short',
@@ -1118,12 +1163,12 @@ export default function StudentProfilePage() {
                                       </span>
                                     </div>
                                   ) : (
-                                    <div className="space-y-1.5">
-                                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
-                                        <span className="truncate pr-2">{badge.progressLabel}</span>
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                                        <span className="truncate pr-1">{badge.progressLabel}</span>
                                         <span className="text-[#0f6b5a] shrink-0">{badge.progressPercent}%</span>
                                       </div>
-                                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                                         <div
                                           className="h-full rounded-full bg-[#0f6b5a] transition-all duration-300"
                                           style={{ width: `${badge.progressPercent}%` }}
