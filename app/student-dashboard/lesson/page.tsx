@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import BadgeToast from '@/components/BadgeToast';
 
 interface LessonDetail {
   id: number;
@@ -174,6 +175,11 @@ function LessonReaderContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activeBadgeToast, setActiveBadgeToast] = useState<{
+    badgeId: string | number;
+    description?: string;
+    xp?: number;
+  } | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -195,6 +201,14 @@ function LessonReaderContent() {
 
       setLesson(data.lesson);
       setClassLessons(data.classLessons || []);
+      if (Array.isArray(data.newlyUnlockedBadges) && data.newlyUnlockedBadges.length > 0) {
+        const firstBadge = data.newlyUnlockedBadges[0];
+        setActiveBadgeToast({
+          badgeId: firstBadge.slug || firstBadge.id,
+          description: firstBadge.description || 'Achievement unlocked',
+          xp: firstBadge.exp,
+        });
+      }
     } catch (err: any) {
       console.error('Failed to load lesson:', err);
       setError(err.message || 'Could not load lesson');
@@ -299,6 +313,15 @@ function LessonReaderContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F7FB] text-[#2E3856] font-sans antialiased">
+      {/* Play Games style BadgeToast */}
+      <BadgeToast
+        badgeId={activeBadgeToast?.badgeId ?? 'first-reader'}
+        open={Boolean(activeBadgeToast)}
+        onClose={() => setActiveBadgeToast(null)}
+        description={activeBadgeToast?.description}
+        xp={activeBadgeToast?.xp}
+      />
+
       {/* Toast popup */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-2xl bg-[#0A092D] px-5 py-3.5 text-sm font-bold text-white shadow-2xl animate-fadeInUp">

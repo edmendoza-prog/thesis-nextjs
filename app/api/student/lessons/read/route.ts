@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth';
+import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,10 +34,17 @@ export async function POST(request: Request) {
       );
     }
 
+    let badgeEval = null;
+    try {
+      badgeEval = await getStudentBadgesAndExp(userId);
+    } catch {}
+
     return NextResponse.json({
       success: true,
       lessonId,
       isRead: markAsRead,
+      newlyUnlockedBadges: badgeEval?.newlyUnlocked || [],
+      expSummary: badgeEval?.expSummary || null,
     });
   } catch (error: any) {
     console.error('Lesson read status update error:', error);

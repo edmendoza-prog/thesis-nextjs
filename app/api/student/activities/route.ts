@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth';
+import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -274,10 +275,17 @@ export async function POST(request: Request) {
       return total + (correctOption && String(studentAnswer) === String(correctOption.id) ? 1 : 0);
     }, 0);
 
-    const maxScore = Number(activity.total_points ?? 0);
-    const score = questions.length > 0
+    const maxScore = body?.clientMaxScore != null && Number(body.clientMaxScore) > 0
+      ? Number(body.clientMaxScore)
+      : Number(activity.total_points ?? 0);
+
+    const serverCalculatedScore = questions.length > 0
       ? Number(((correctAnswers / questions.length) * maxScore).toFixed(2))
       : 0;
+
+    const score = body?.clientScore != null && !Number.isNaN(Number(body.clientScore))
+      ? Math.max(0, Math.min(maxScore, Number(Number(body.clientScore).toFixed(2))))
+      : serverCalculatedScore;
 
     await pool.query(
       `INSERT INTO activity_submissions (student_id, activity_id, score, max_score, answers, status)
@@ -286,12 +294,34 @@ export async function POST(request: Request) {
       [userId, activityId, score, maxScore, JSON.stringify(answers)],
     );
 
+    const pct = maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
+    const baseExpEarned = 25 + Math.round((pct / 100) * 50);
+
+    let badgeEval = null;
+    try {
+      badgeEval = await getStudentBadgesAndExp(userId);
+    } catch (badgeErr) {
+      console.warn('Badge evaluation error after activity submission:', badgeErr);
+    }
+
+    const newlyUnlockedBadges = badgeEval?.newlyUnlocked || [];
+    const badgeBonusExp = newlyUnlockedBadges.reduce((sum, b) => sum + b.exp, 0);
+    const expEarned = baseExpEarned + badgeBonusExp;
+
     const answeredCount = Object.keys(answers).length;
-    return NextResponse.json({ score, maxScore, answered: answeredCount, correct: correctAnswers });
+    return NextResponse.json({
+      score,
+      maxScore,
+      answered: answeredCount,
+      correct: body?.clientCorrect != null ? Number(body.clientCorrect) : correctAnswers,
+      expEarned,
+      baseExpEarned,
+      badgeBonusExp,
+      newlyUnlockedBadges,
+      expSummary: badgeEval?.expSummary || null,
+    });
   } catch (error) {
     console.error('Student activity submission error:', error);
     return NextResponse.json({ error: 'Unable to save assessment result' }, { status: 500 });
   }
 }
-
-

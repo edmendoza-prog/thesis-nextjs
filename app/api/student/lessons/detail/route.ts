@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,6 +93,24 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
     }
 
+    // Automatically mark lesson as read when a student opens it
+    let newlyUnlockedBadges: any[] = [];
+    if (user.role === 'student') {
+      try {
+        await pool.query(
+          `INSERT INTO lesson_reads (lesson_id, student_id)
+           VALUES (?, ?)
+           ON DUPLICATE KEY UPDATE read_at = CURRENT_TIMESTAMP`,
+          [lessonId, user.id]
+        );
+        rawLesson.is_read = 1;
+        const badgeRes = await getStudentBadgesAndExp(user.id);
+        newlyUnlockedBadges = badgeRes.newlyUnlocked;
+      } catch (readErr) {
+        console.warn('Could not auto-mark lesson read:', readErr);
+      }
+    }
+
     const classId = rawLesson.class_id;
 
     // 2. Fetch sibling lessons in the same class
@@ -174,6 +193,7 @@ export async function GET(request: Request) {
         isRead: Boolean(rawLesson.is_read),
       },
       classLessons: siblings,
+      newlyUnlockedBadges,
     });
   } catch (error: any) {
     console.error('Lesson detail fetch error:', error);

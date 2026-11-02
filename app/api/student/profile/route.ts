@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth';
+import { getStudentBadgesAndExp, BADGE_CATALOG, calculateLevelFromExp } from '@/lib/badges';
 
 type StudentProfile = {
   id?: number;
@@ -46,6 +47,35 @@ export async function GET() {
 
     const defaultSeed = student.avatar_seed || student.student_number || String(student.user_id) || 'Student';
 
+    let badgesData = null;
+    try {
+      badgesData = await getStudentBadgesAndExp(Number(student.user_id));
+    } catch (badgeErr) {
+      console.warn('Badges evaluation fallback:', badgeErr);
+    }
+
+    const fallbackBadges = BADGE_CATALOG.map((b) => ({
+      ...b,
+      unlocked: false,
+      earnedAt: null,
+      progressCurrent: 0,
+      progressTarget: 1,
+      progressPercent: 0,
+      progressLabel: b.requirementText,
+    }));
+
+    const fallbackExp = {
+      totalExp: 0,
+      badgeExp: 0,
+      lessonExp: 0,
+      assessmentExp: 0,
+      attendanceExp: 0,
+      maxPossibleBadgeExp: BADGE_CATALOG.reduce((sum, b) => sum + b.exp, 0),
+      ...calculateLevelFromExp(0),
+      unlockedCount: 0,
+      totalBadgesCount: BADGE_CATALOG.length,
+    };
+
     return NextResponse.json({
       profile: {
         id: student.user_id,
@@ -64,6 +94,9 @@ export async function GET() {
           ? Math.max(1, Number(student.life_span || 5))
           : Math.max(1, Math.min(5, Math.round(Number(student.life_span ?? 100) / 20))),
       },
+      badges: badgesData?.badges || fallbackBadges,
+      expSummary: badgesData?.expSummary || fallbackExp,
+      newlyUnlockedBadges: badgesData?.newlyUnlocked || [],
     });
   } catch (error) {
     console.error('Student profile fetch error:', error);

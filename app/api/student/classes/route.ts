@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getCurrentUserId } from '@/lib/auth';
+import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,11 @@ export async function GET() {
     `, [userId]);
 
     const enrolledClasses = classRows as any[];
+    let badgeEval = null;
+    try {
+      badgeEval = await getStudentBadgesAndExp(userId);
+    } catch {}
+
     if (enrolledClasses.length === 0) {
       return NextResponse.json({
         student: {
@@ -65,6 +71,9 @@ export async function GET() {
           hearts: Number(studentUser?.life_span ?? 100) <= 5
             ? Math.max(1, Number(studentUser?.life_span || 5))
             : Math.max(1, Math.min(5, Math.round(Number(studentUser?.life_span ?? 100) / 20))),
+          expSummary: badgeEval?.expSummary || null,
+          badges: badgeEval?.badges || [],
+          newlyUnlockedBadges: badgeEval?.newlyUnlocked || [],
         },
         classes: [],
       });
@@ -224,6 +233,9 @@ export async function GET() {
         hearts: Number(studentUser?.life_span ?? 100) <= 5
           ? Math.max(1, Number(studentUser?.life_span || 5))
           : Math.max(1, Math.min(5, Math.round(Number(studentUser?.life_span ?? 100) / 20))),
+        expSummary: badgeEval?.expSummary || null,
+        badges: badgeEval?.badges || [],
+        newlyUnlockedBadges: badgeEval?.newlyUnlocked || [],
       },
       classes: formattedClasses,
     });

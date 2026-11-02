@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
+import BadgeToast from '@/components/BadgeToast';
 
 type QuestionOption = {
   id: string;
@@ -332,6 +333,14 @@ function StudentAssessmentPlayer() {
   const [correctCount, setCorrectCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [identificationInput, setIdentificationInput] = useState('');
+  const [earnedExp, setEarnedExp] = useState<number | null>(null);
+  const [newlyUnlockedBadges, setNewlyUnlockedBadges] = useState<any[]>([]);
+  const [activeBadgeToast, setActiveBadgeToast] = useState<{
+    badgeId: string | number;
+    description?: string;
+    xp?: number;
+  } | null>(null);
+  const [hasAutoSaved, setHasAutoSaved] = useState(false);
 
   // Drag and Drop & Matching States
   const [draggedCard, setDraggedCard] = useState<string | null>(null);
@@ -866,12 +875,42 @@ function StudentAssessmentPlayer() {
     }
   }, []);
 
-  // Trigger confetti upon reaching the results screen
+  // Trigger confetti & auto-save result + evaluate badges upon reaching the results screen
   useEffect(() => {
     if (gameState === 'results') {
       triggerCelebrationConfetti();
+      if (!hasAutoSaved && activityId > 0) {
+        setHasAutoSaved(true);
+        fetch('/api/student/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            activityId,
+            answers: selectedAnswers,
+            clientScore: currentScore,
+            clientMaxScore: totalPointsParam,
+            clientCorrect: correctCount,
+          }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (typeof data.expEarned === 'number') {
+              setEarnedExp(data.expEarned);
+            }
+            if (Array.isArray(data.newlyUnlockedBadges) && data.newlyUnlockedBadges.length > 0) {
+              setNewlyUnlockedBadges(data.newlyUnlockedBadges);
+              const first = data.newlyUnlockedBadges[0];
+              setActiveBadgeToast({
+                badgeId: first.slug || first.id,
+                description: first.description || 'Achievement unlocked',
+                xp: first.exp,
+              });
+            }
+          })
+          .catch((err) => console.error('Auto-save assessment error:', err));
+      }
     }
-  }, [gameState, triggerCelebrationConfetti]);
+  }, [gameState, triggerCelebrationConfetti, hasAutoSaved, activityId, selectedAnswers, currentScore, totalPointsParam, correctCount]);
 
   const handleNextQuestion = () => {
     if (currentIndex < questions.length - 1) {
@@ -895,13 +934,16 @@ function StudentAssessmentPlayer() {
   const handleSubmitHomework = async () => {
     setSubmitting(true);
     try {
-      if (activityId > 0) {
+      if (activityId > 0 && !hasAutoSaved) {
         await fetch('/api/student/activities', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             activityId,
             answers: selectedAnswers,
+            clientScore: currentScore,
+            clientMaxScore: totalPointsParam,
+            clientCorrect: correctCount,
           }),
         });
       }
@@ -933,6 +975,15 @@ function StudentAssessmentPlayer() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-900 select-none">
+      {/* Play Games style BadgeToast */}
+      <BadgeToast
+        badgeId={activeBadgeToast?.badgeId ?? 'first-submission'}
+        open={Boolean(activeBadgeToast)}
+        onClose={() => setActiveBadgeToast(null)}
+        description={activeBadgeToast?.description}
+        xp={activeBadgeToast?.xp}
+      />
+
       {/* 1. TOP BAR: Clean White with subtle border */}
       <header className="relative z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-8 shadow-xs">
         <div className="flex items-center gap-3">
@@ -1610,21 +1661,69 @@ function StudentAssessmentPlayer() {
                 You have completed all questions for <strong>{title}</strong>.
               </p>
 
-              {/* Score Big Display */}
-              <div className="mt-6 grid grid-cols-2 gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+              {/* Score & EXP Big Display */}
+              <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
                 <div>
                   <p className="text-xs font-bold uppercase text-slate-500">Total Score</p>
-                  <p className="mt-1 font-heading text-3xl sm:text-4xl font-black text-emerald-600">
-                    {currentScore} <span className="text-lg text-slate-400">/ {totalPointsParam}</span>
+                  <p className="mt-1 font-heading text-2xl sm:text-4xl font-black text-emerald-600">
+                    {currentScore} <span className="text-sm sm:text-lg text-slate-400">/ {totalPointsParam}</span>
                   </p>
                 </div>
-                <div className="border-l border-slate-200">
+                <div className="border-x border-slate-200">
                   <p className="text-xs font-bold uppercase text-slate-500">Correct Answers</p>
-                  <p className="mt-1 font-heading text-3xl sm:text-4xl font-black text-slate-900">
-                    {correctCount} <span className="text-lg text-slate-400">/ {questions.length}</span>
+                  <p className="mt-1 font-heading text-2xl sm:text-4xl font-black text-slate-900">
+                    {correctCount} <span className="text-sm sm:text-lg text-slate-400">/ {questions.length}</span>
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-amber-600">EXP Earned</p>
+                  <p className="mt-1 font-heading text-2xl sm:text-4xl font-black text-amber-500">
+                    +{earnedExp ?? 25 + Math.round(((totalPointsParam > 0 ? currentScore / totalPointsParam : 0)) * 50)}{' '}
+                    <span className="text-xs sm:text-sm font-extrabold text-amber-600">EXP</span>
                   </p>
                 </div>
               </div>
+
+              {/* Newly Unlocked Badges Banner */}
+              {newlyUnlockedBadges.length > 0 && (
+                <div className="mt-5 rounded-2xl border-2 border-amber-300 bg-linear-to-r from-amber-50 via-white to-emerald-50 p-4 sm:p-5 text-left shadow-sm animate-fadeInUp">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                      🏅 New {newlyUnlockedBadges.length === 1 ? 'Badge' : 'Badges'} Unlocked!
+                    </span>
+                    <span className="rounded-full bg-amber-400/25 border border-amber-400 px-2.5 py-0.5 text-xs font-black text-amber-900">
+                      +{newlyUnlockedBadges.reduce((s, b) => s + (b.exp || 0), 0)} Bonus EXP
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {newlyUnlockedBadges.map((b) => (
+                      <div
+                        key={b.id}
+                        className="flex items-center gap-3 rounded-xl border border-amber-200/80 bg-white p-3 shadow-2xs"
+                      >
+                        <img
+                          src={b.icon}
+                          alt={b.name}
+                          className="h-14 w-14 shrink-0 object-contain drop-shadow-sm"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="font-heading text-sm font-extrabold text-slate-900 truncate">
+                              {b.name}
+                            </p>
+                            <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800">
+                              +{b.exp} EXP
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5">
+                            {b.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Detailed Review List */}

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import UserAvatar from "@/app/components/UserAvatar";
+import BadgeToast from "@/components/BadgeToast";
 
 type IconName =
   | "home"
@@ -405,12 +406,29 @@ function StudentDashboardContent() {
   const [studentName, setStudentName] = useState("Student");
   const [avatarSeed, setAvatarSeed] = useState("");
   const [hearts, setHearts] = useState(5);
+  const [expSummary, setExpSummary] = useState<{
+    totalExp: number;
+    level: number;
+    levelTitle: string;
+    levelProgressPercent: number;
+    unlockedCount: number;
+    totalBadgesCount: number;
+  } | null>(null);
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(
     classIdParam ? Number(classIdParam) : null
   );
   const [classDetailTab, setClassDetailTab] = useState<"lessons" | "homework">("lessons");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeBadgeToast, setActiveBadgeToast] = useState<{
+    badgeId: string | number;
+    description?: string;
+    xp?: number;
+  } | null>(null);
+  const [badgeToastQueue, setBadgeToastQueue] = useState<
+    Array<{ badgeId: string | number; description?: string; xp?: number }>
+  >([]);
+  const hasShownInitialBadgeToast = useRef(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -480,8 +498,72 @@ function StudentDashboardContent() {
         if (typeof data.student?.hearts === "number") {
           setHearts(Math.max(1, Math.min(5, data.student.hearts)));
         }
+        if (data.student?.expSummary) {
+          setExpSummary(data.student.expSummary);
+        }
         if (Array.isArray(data.classes)) {
           setClasses(data.classes);
+        }
+
+        const allBadges: Array<{
+          id: number;
+          slug: string;
+          description?: string;
+          exp?: number;
+          unlocked?: boolean;
+        }> = Array.isArray(data.student?.badges) ? data.student.badges : [];
+        const newlyUnlocked: Array<{
+          id: number;
+          slug: string;
+          description?: string;
+          exp?: number;
+        }> = Array.isArray(data.student?.newlyUnlockedBadges)
+          ? data.student.newlyUnlockedBadges
+          : [];
+
+        if (!hasShownInitialBadgeToast.current) {
+          hasShownInitialBadgeToast.current = true;
+          const studentIdKey = data.student?.id ? String(data.student.id) : "default";
+          const storageKey = `go_learning_seen_badge_toasts_v3_${studentIdKey}`;
+          let seenSlugs: string[] = [];
+          try {
+            const raw = localStorage.getItem(storageKey);
+            if (raw) seenSlugs = JSON.parse(raw);
+          } catch {}
+
+          const unlockedList = allBadges.filter((b) => b.unlocked);
+          const unseenUnlocked = unlockedList.filter(
+            (b) => !seenSlugs.includes(b.slug || String(b.id))
+          );
+
+          const toastsToShow =
+            newlyUnlocked.length > 0
+              ? newlyUnlocked.slice(-1)
+              : unseenUnlocked.length > 0
+                ? unseenUnlocked.slice(-1)
+                : [];
+
+          if (unlockedList.length > 0) {
+            try {
+              const updatedSeen = Array.from(
+                new Set([
+                  ...seenSlugs,
+                  ...unlockedList.map((b) => b.slug || String(b.id)),
+                ])
+              );
+              localStorage.setItem(storageKey, JSON.stringify(updatedSeen));
+            } catch {}
+          }
+
+          if (toastsToShow.length > 0) {
+            const latest = toastsToShow[0];
+            setActiveBadgeToast({
+              badgeId: latest.slug || latest.id,
+              description: latest.description || "Achievement unlocked",
+              xp: latest.exp,
+            });
+            setBadgeToastQueue([]);
+          }
         }
       }
     } catch (error) {
@@ -604,44 +686,79 @@ function StudentDashboardContent() {
             Access your classes, learning materials, and homework assignments all in one place.
           </p>
 
-          {/* Student Life Hearts Standing Badge */}
-          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-rose-200/80 bg-linear-to-r from-rose-50/70 via-white to-primary-50/40 p-3 shadow-xs sm:inline-flex">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600 border border-rose-200 text-lg shadow-xs">
-                ❤️
-              </span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Student Life:
-                  </span>
-                  <span className="font-heading text-sm font-bold text-[#2E3856]">
-                    {hearts} <span className="text-xs text-slate-400">/ 5 ❤️</span>
-                  </span>
-                </div>
-                <div className="mt-1 flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((heartIdx) => (
-                    <span
-                      key={heartIdx}
-                      className={`text-base leading-none transition-transform ${heartIdx <= hearts ? "opacity-100 drop-shadow-xs" : "opacity-25 grayscale"
-                        }`}
-                    >
-                      {heartIdx <= hearts ? "❤️" : "🤍"}
+          {/* Student Life Hearts + Level/EXP Standing Badges */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-rose-200/80 bg-linear-to-r from-rose-50/70 via-white to-primary-50/40 p-3 shadow-xs sm:inline-flex">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600 border border-rose-200 text-lg shadow-xs">
+                  ❤️
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Student Life:
                     </span>
-                  ))}
+                    <span className="font-heading text-sm font-bold text-[#2E3856]">
+                      {hearts} <span className="text-xs text-slate-400">/ 5 ❤️</span>
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((heartIdx) => (
+                      <span
+                        key={heartIdx}
+                        className={`text-base leading-none transition-transform ${heartIdx <= hearts ? "opacity-100 drop-shadow-xs" : "opacity-25 grayscale"
+                          }`}
+                      >
+                        {heartIdx <= hearts ? "❤️" : "🤍"}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold shadow-xs ${hearts >= 4
+                  ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
+                  : hearts === 3
+                    ? "border border-blue-300 bg-blue-50 text-blue-800"
+                    : "border border-rose-300 bg-rose-50 text-rose-800"
+                  }`}
+              >
+                {hearts >= 4 ? "✨ Full Life" : hearts === 3 ? "👍 Normal Life" : "⚠️ Needs Attention"}
+              </span>
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-bold shadow-xs ${hearts >= 4
-                ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
-                : hearts === 3
-                  ? "border border-blue-300 bg-blue-50 text-blue-800"
-                  : "border border-rose-300 bg-rose-50 text-rose-800"
-                }`}
+
+            {/* Student Level, EXP & Badges Pill */}
+            <Link
+              href="/student-dashboard/profile"
+              className="group flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200/90 bg-linear-to-r from-amber-50/80 via-white to-emerald-50/50 p-3 shadow-xs transition hover:border-amber-300 hover:shadow-sm"
             >
-              {hearts >= 4 ? "✨ Full Life" : hearts === 3 ? "👍 Normal Life" : "⚠️ Needs Attention"}
-            </span>
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-slate-950 font-black text-xs shadow-xs">
+                  Lv.{expSummary?.level ?? 1}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
+                      {expSummary?.levelTitle ?? "Novice Explorer"}
+                    </span>
+                    <span className="font-heading text-sm font-extrabold text-[#2E3856]">
+                      ⚡ {(expSummary?.totalExp ?? 0).toLocaleString()} EXP
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-linear-to-r from-emerald-500 to-amber-500 transition-all duration-500"
+                        style={{ width: `${Math.max(6, expSummary?.levelProgressPercent ?? 0)}%` }}
+                      />
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-700 group-hover:underline">
+                      🏅 {expSummary?.unlockedCount ?? 0}/{expSummary?.totalBadgesCount ?? 27} Badges →
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -1380,6 +1497,24 @@ function StudentDashboardContent() {
 
   return (
     <div className="flex min-h-screen bg-[#F6F7FB] text-[#2E3856] font-sans">
+      {/* Play Games style BadgeToast */}
+      <BadgeToast
+        badgeId={activeBadgeToast?.badgeId ?? "first-reader"}
+        open={Boolean(activeBadgeToast)}
+        onClose={() => {
+          setActiveBadgeToast(null);
+          if (badgeToastQueue.length > 0) {
+            const [next, ...rest] = badgeToastQueue;
+            setBadgeToastQueue(rest);
+            setTimeout(() => {
+              setActiveBadgeToast(next);
+            }, 400);
+          }
+        }}
+        description={activeBadgeToast?.description}
+        xp={activeBadgeToast?.xp}
+      />
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2 rounded-2xl bg-[#0A092D] px-5 py-3 text-sm font-bold text-white shadow-2xl animate-fadeInUp">
