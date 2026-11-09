@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
-import { getCurrentUserId } from "@/lib/auth";
+import { getCurrentUserId, NO_STORE_HEADERS } from "@/lib/auth";
 
 type DbRow = Record<string, unknown>;
 
@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('student');
     if (!userId) {
-      return NextResponse.json({ games: [], error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ games: [], error: 'Not authenticated' }, { status: 401, headers: NO_STORE_HEADERS });
     }
 
     const [rows] = await pool.query(`
@@ -72,9 +72,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('student');
     if (!userId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401, headers: NO_STORE_HEADERS });
     }
 
     const body = await request.json();

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUserId, NO_STORE_HEADERS } from '@/lib/auth';
 import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
@@ -28,9 +28,12 @@ function formatUploadDate(dateValue?: string | Date | null) {
 
 export async function GET() {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('student');
     if (!userId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401, headers: NO_STORE_HEADERS }
+      );
     }
 
     // 1. Fetch student info
@@ -62,21 +65,24 @@ export async function GET() {
     } catch {}
 
     if (enrolledClasses.length === 0) {
-      return NextResponse.json({
-        student: {
-          id: userId,
-          name: studentUser?.name || 'Student',
-          avatarSeed: studentUser?.avatar_seed || studentUser?.student_number || String(userId) || 'Student',
-          lifeSpan: Math.max(0, Math.min(100, Number(studentUser?.life_span ?? 100))),
-          hearts: Number(studentUser?.life_span ?? 100) <= 5
-            ? Math.max(1, Number(studentUser?.life_span || 5))
-            : Math.max(1, Math.min(5, Math.round(Number(studentUser?.life_span ?? 100) / 20))),
-          expSummary: badgeEval?.expSummary || null,
-          badges: badgeEval?.badges || [],
-          newlyUnlockedBadges: badgeEval?.newlyUnlocked || [],
+      return NextResponse.json(
+        {
+          student: {
+            id: userId,
+            name: studentUser?.name || 'Student',
+            avatarSeed: studentUser?.avatar_seed || studentUser?.student_number || String(userId) || 'Student',
+            lifeSpan: Math.max(0, Math.min(100, Number(studentUser?.life_span ?? 100))),
+            hearts: Number(studentUser?.life_span ?? 100) <= 5
+              ? Math.max(1, Number(studentUser?.life_span || 5))
+              : Math.max(1, Math.min(5, Math.round(Number(studentUser?.life_span ?? 100) / 20))),
+            expSummary: badgeEval?.expSummary || null,
+            badges: badgeEval?.badges || [],
+            newlyUnlockedBadges: badgeEval?.newlyUnlocked || [],
+          },
+          classes: [],
         },
-        classes: [],
-      });
+        { headers: NO_STORE_HEADERS }
+      );
     }
 
     const classIds = enrolledClasses.map((c) => c.id);
@@ -238,9 +244,12 @@ export async function GET() {
         newlyUnlockedBadges: badgeEval?.newlyUnlocked || [],
       },
       classes: formattedClasses,
-    });
+    }, { headers: NO_STORE_HEADERS });
   } catch (error: any) {
     console.error('Student classes fetch error:', error);
-    return NextResponse.json({ error: 'Unable to load student classes' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Unable to load student classes' },
+      { status: 500, headers: NO_STORE_HEADERS }
+    );
   }
 }

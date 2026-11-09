@@ -188,15 +188,15 @@ const defaultExpSummary: ExpSummary = {
   totalBadgesCount: 27,
 };
 
-// Default sample profile values
-const sampleProfile: Profile = {
-  name: 'Rodel Apit',
-  email: 'rodel.apit@student.golearning.edu',
-  studentNumber: 'LRN-2026-8941',
-  guardianName: 'Maria Elena Apit',
-  guardianContact: '+63 917 555 4321',
-  birthDate: '2010-04-18',
-  avatarSeed: 'adventurer:Oliver',
+// Empty initial state before authenticated student profile is loaded
+const emptyProfile: Profile = {
+  name: '',
+  email: '',
+  studentNumber: '',
+  guardianName: '',
+  guardianContact: '',
+  birthDate: '',
+  avatarSeed: '',
 };
 
 const navigation = [
@@ -206,7 +206,8 @@ const navigation = [
 
 export default function StudentProfilePage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile>(sampleProfile);
+  const [profile, setProfile] = useState<Profile>(emptyProfile);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -227,7 +228,7 @@ export default function StudentProfilePage() {
 
   const fullNameInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const hasCheckedBadgeToastRef = useRef(false);
+  const lastLoadedUserIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -263,87 +264,107 @@ export default function StudentProfilePage() {
     );
   }, []);
 
-  // Fetch student profile from API
+  // Fetch authenticated student profile from API
   useEffect(() => {
+    let isMounted = true;
+
     async function loadProfile() {
       try {
-        const response = await fetch('/api/student/profile', { cache: 'no-store' });
+        const response = await fetch('/api/student/profile', {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (response.status === 401) {
+          if (isMounted) router.replace('/login/student');
+          return;
+        }
         const data = await response.json();
-        if (response.ok && data.profile) {
+        if (!isMounted) return;
+
+        if (response.ok && data.profile && data.profile.id) {
           setProfile({
             id: data.profile.id,
-            name: data.profile.name || sampleProfile.name,
-            email: data.profile.email || sampleProfile.email,
-            studentNumber: data.profile.studentNumber || sampleProfile.studentNumber,
-            guardianName: data.profile.guardianName || sampleProfile.guardianName,
-            guardianContact: data.profile.guardianContact || sampleProfile.guardianContact,
-            birthDate: data.profile.birthDate || sampleProfile.birthDate,
-            avatarSeed: data.profile.avatarSeed || sampleProfile.avatarSeed,
+            name: data.profile.name ?? '',
+            email: data.profile.email ?? '',
+            studentNumber: data.profile.studentNumber ?? '',
+            guardianName: data.profile.guardianName ?? '',
+            guardianContact: data.profile.guardianContact ?? '',
+            birthDate: data.profile.birthDate ?? '',
+            avatarSeed: data.profile.avatarSeed ?? '',
           });
-        }
-        const allBadges: BadgeItem[] = Array.isArray(data.badges) ? data.badges : [];
-        if (allBadges.length > 0) {
+
+          const allBadges: BadgeItem[] = Array.isArray(data.badges) ? data.badges : [];
           setBadges(allBadges);
-        }
-        if (data.expSummary) {
-          setExpSummary(data.expSummary);
-        }
+          setExpSummary(data.expSummary || defaultExpSummary);
 
-        if (!hasCheckedBadgeToastRef.current) {
-          hasCheckedBadgeToastRef.current = true;
-          const studentIdKey = data.profile?.id ? String(data.profile.id) : 'default';
-          const storageKey = `go_learning_seen_badge_toasts_v3_${studentIdKey}`;
-          let seenSlugs: string[] = [];
-          try {
-            const raw = localStorage.getItem(storageKey);
-            if (raw) seenSlugs = JSON.parse(raw);
-          } catch {}
-
-          const newlyUnlocked: BadgeItem[] = Array.isArray(data.newlyUnlockedBadges)
-            ? data.newlyUnlockedBadges
-            : [];
-          const unlockedList = allBadges.filter((b) => b.unlocked);
-          const unseenUnlocked = unlockedList.filter(
-            (b) => !seenSlugs.includes(b.slug || String(b.id))
-          );
-
-          // Show only the latest newly unlocked badge (instead of looping through all 10)
-          const toastsToShow =
-            newlyUnlocked.length > 0
-              ? newlyUnlocked.slice(-1)
-              : unseenUnlocked.length > 0
-                ? unseenUnlocked.slice(-1)
-                : [];
-
-          if (unlockedList.length > 0) {
+          const currentUserId = Number(data.profile.id);
+          if (lastLoadedUserIdRef.current !== currentUserId) {
+            lastLoadedUserIdRef.current = currentUserId;
+            const studentIdKey = String(currentUserId);
+            const storageKey = `go_learning_seen_badge_toasts_v3_${studentIdKey}`;
+            let seenSlugs: string[] = [];
             try {
-              const updatedSeen = Array.from(
-                new Set([
-                  ...seenSlugs,
-                  ...unlockedList.map((b) => b.slug || String(b.id)),
-                ])
-              );
-              localStorage.setItem(storageKey, JSON.stringify(updatedSeen));
+              const raw = localStorage.getItem(storageKey);
+              if (raw) seenSlugs = JSON.parse(raw);
             } catch {}
-          }
 
-          if (toastsToShow.length > 0) {
-            const latest = toastsToShow[0];
-            setActiveBadgeToast({
-              badgeId: latest.slug || latest.id,
-              description: latest.description || 'Achievement unlocked',
-              xp: latest.exp,
-            });
-            setBadgeToastQueue([]);
+            const newlyUnlocked: BadgeItem[] = Array.isArray(data.newlyUnlockedBadges)
+              ? data.newlyUnlockedBadges
+              : [];
+            const unlockedList = allBadges.filter((b) => b.unlocked);
+            const unseenUnlocked = unlockedList.filter(
+              (b) => !seenSlugs.includes(b.slug || String(b.id))
+            );
+
+            // Show only the latest newly unlocked badge (instead of looping through all 10)
+            const toastsToShow =
+              newlyUnlocked.length > 0
+                ? newlyUnlocked.slice(-1)
+                : unseenUnlocked.length > 0
+                  ? unseenUnlocked.slice(-1)
+                  : [];
+
+            if (unlockedList.length > 0) {
+              try {
+                const updatedSeen = Array.from(
+                  new Set([
+                    ...seenSlugs,
+                    ...unlockedList.map((b) => b.slug || String(b.id)),
+                  ])
+                );
+                localStorage.setItem(storageKey, JSON.stringify(updatedSeen));
+              } catch {}
+            }
+
+            if (toastsToShow.length > 0) {
+              const latest = toastsToShow[0];
+              setActiveBadgeToast({
+                badgeId: latest.slug || latest.id,
+                description: latest.description || 'Achievement unlocked',
+                xp: latest.exp,
+              });
+              setBadgeToastQueue([]);
+            }
           }
         }
       } catch (error) {
         console.error('Student profile load error:', error);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
 
     loadProfile();
-  }, []);
+
+    const handleWindowFocus = () => {
+      loadProfile();
+    };
+    window.addEventListener('focus', handleWindowFocus);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [router]);
 
   const update = (field: keyof Profile, value: string) => {
     setProfile((current) => ({ ...current, [field]: value }));
@@ -351,6 +372,7 @@ export default function StudentProfilePage() {
   };
 
   const handleAvatarSelect = async (newSeed: string) => {
+    if (loading || !profile.id) return;
     setProfile((current) => ({ ...current, avatarSeed: newSeed }));
     setSaved(false);
 
@@ -374,6 +396,7 @@ export default function StudentProfilePage() {
 
   const save = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (loading || !profile.id) return;
     try {
       setSaving(true);
       const response = await fetch('/api/student/profile', {
@@ -398,8 +421,13 @@ export default function StudentProfilePage() {
 
   const handleSignOut = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'student' }),
+      });
     } catch {}
+    router.refresh();
     router.push('/login/student');
   };
 
@@ -408,8 +436,7 @@ export default function StudentProfilePage() {
     profile.studentNumber ||
     (profile.id ? String(profile.id) : '') ||
     profile.name ||
-    sampleProfile.avatarSeed ||
-    'Oliver';
+    'Student';
 
   return (
     <div className="flex min-h-screen bg-[#edf2f0] text-slate-800 font-sans antialiased">
@@ -595,7 +622,7 @@ export default function StudentProfilePage() {
               {/* Name & Role */}
               <div className="hidden sm:flex flex-col text-left">
                 <span className="text-xs sm:text-sm font-bold text-slate-900 leading-tight max-w-[140px] truncate">
-                  {profile.name || sampleProfile.name}
+                  {profile.name || (loading ? 'Loading...' : 'Student')}
                 </span>
                 <span className="text-[11px] font-medium text-slate-500 leading-none mt-0.5">
                   Student Account
@@ -617,7 +644,7 @@ export default function StudentProfilePage() {
                     <UserAvatar seed={effectiveAvatarSeed} size={40} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-slate-900 truncate">{profile.name || sampleProfile.name}</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{profile.name || (loading ? 'Loading...' : 'Student')}</p>
                     <p className="text-xs text-[#4255FF] font-semibold">Student Account</p>
                   </div>
                 </div>
@@ -725,7 +752,7 @@ export default function StudentProfilePage() {
               <div className="sm:ml-6 flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight truncate">
-                    {profile.name || sampleProfile.name}
+                    {profile.name || (loading ? 'Loading...' : 'Student')}
                   </h1>
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-extrabold text-amber-800 shadow-2xs">
                     ⚡ Level {expSummary.level} · {expSummary.levelTitle}
@@ -1226,7 +1253,7 @@ export default function StudentProfilePage() {
                     required
                     value={profile.name}
                     onChange={(e) => update('name', e.target.value)}
-                    placeholder="e.g. Rodel Apit"
+                    placeholder="Enter your full name"
                     className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:bg-white focus:border-[#0f6b5a] focus:ring-2 focus:ring-[#0f6b5a]/15 placeholder:text-slate-400"
                   />
                 </div>
@@ -1241,7 +1268,7 @@ export default function StudentProfilePage() {
                     required
                     value={profile.email}
                     onChange={(e) => update('email', e.target.value)}
-                    placeholder="e.g. rodel.apit@student.golearning.edu"
+                    placeholder="Enter your email address"
                     className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:bg-white focus:border-[#0f6b5a] focus:ring-2 focus:ring-[#0f6b5a]/15 placeholder:text-slate-400"
                   />
                 </div>
@@ -1255,7 +1282,7 @@ export default function StudentProfilePage() {
                     type="text"
                     value={profile.studentNumber}
                     onChange={(e) => update('studentNumber', e.target.value)}
-                    placeholder="e.g. LRN-2026-8941"
+                    placeholder="e.g. G1-658379"
                     className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:bg-white focus:border-[#0f6b5a] focus:ring-2 focus:ring-[#0f6b5a]/15 placeholder:text-slate-400"
                   />
                 </div>
@@ -1282,7 +1309,7 @@ export default function StudentProfilePage() {
                     type="text"
                     value={profile.guardianName}
                     onChange={(e) => update('guardianName', e.target.value)}
-                    placeholder="e.g. Maria Elena Apit"
+                    placeholder="Enter guardian's full name"
                     className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:bg-white focus:border-[#0f6b5a] focus:ring-2 focus:ring-[#0f6b5a]/15 placeholder:text-slate-400"
                   />
                 </div>
@@ -1319,7 +1346,7 @@ export default function StudentProfilePage() {
 
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || loading || !profile.id}
                   className="inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-7 rounded-xl bg-[#0f6b5a] hover:bg-[#0c5547] active:bg-[#094136] text-white font-bold text-sm shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {saving ? (

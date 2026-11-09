@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUserId, NO_STORE_HEADERS } from '@/lib/auth';
 import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('student');
     if (!userId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401, headers: NO_STORE_HEADERS });
     }
 
     const body = await request.json();

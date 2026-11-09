@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUserId, NO_STORE_HEADERS } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,9 +20,9 @@ export type StudentNotification = {
 
 export async function GET() {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('student');
     if (!userId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401, headers: NO_STORE_HEADERS });
     }
 
     // 1. Fetch read notification keys for this student
@@ -194,18 +194,18 @@ export async function GET() {
     return NextResponse.json({
       notifications,
       unreadCount,
-    });
+    }, { headers: NO_STORE_HEADERS });
   } catch (error) {
     console.error('Student notifications fetch error:', error);
-    return NextResponse.json({ error: 'Unable to load notifications' }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to load notifications' }, { status: 500, headers: NO_STORE_HEADERS });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('student');
     if (!userId) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401, headers: NO_STORE_HEADERS });
     }
 
     const body = await request.json();

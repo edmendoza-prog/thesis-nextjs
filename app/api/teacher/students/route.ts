@@ -14,7 +14,7 @@ async function ensureLifeSpanColumn() {
 
 export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }
@@ -162,7 +162,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }

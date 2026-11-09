@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, NO_STORE_HEADERS } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 type TeacherProfile = {
   id?: number;
@@ -25,7 +27,7 @@ const emptyProfile: TeacherProfile = {
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }
@@ -65,7 +67,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }

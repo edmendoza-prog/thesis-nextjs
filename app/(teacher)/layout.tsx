@@ -151,7 +151,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
     async function loadTeacherProfile() {
       try {
-        const response = await fetch('/api/teacher/profile');
+        const response = await fetch('/api/teacher/profile', { cache: 'no-store' });
         if (response.status === 401) {
           // Graceful fallback for local development & preview
           setTeacherName('Teacher');
@@ -231,10 +231,18 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   const handleSignOut = async () => {
     setIsDropdownOpen(false);
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('teacher_profile');
+    } catch {}
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'teacher' }),
+      });
     } catch {
       // ignore
     }
+    router.refresh();
     router.push('/login/teacher');
   };
 

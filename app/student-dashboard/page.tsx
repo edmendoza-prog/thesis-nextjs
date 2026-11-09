@@ -464,8 +464,13 @@ function StudentDashboardContent() {
   const handleSignOut = async () => {
     setIsDropdownOpen(false);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "student" }),
+      });
     } catch { }
+    router.refresh();
     router.push("/login/student");
   };
 
@@ -479,22 +484,23 @@ function StudentDashboardContent() {
 
   const fetchClassesData = async () => {
     try {
-      const response = await fetch("/api/student/classes", { cache: "no-store" });
+      const response = await fetch("/api/student/classes", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (response.status === 401) {
+        router.replace("/login/student");
+        return;
+      }
       const data = await response.json();
 
       if (response.ok) {
-        if (data.student?.name) {
-          setStudentName(data.student.name);
-        }
-        if (data.student?.avatarSeed) {
-          setAvatarSeed(data.student.avatarSeed);
-        }
+        setStudentName(data.student?.name || "Student");
+        setAvatarSeed(data.student?.avatarSeed || "");
         if (typeof data.student?.hearts === "number") {
           setHearts(Math.max(1, Math.min(5, data.student.hearts)));
         }
-        if (data.student?.expSummary) {
-          setExpSummary(data.student.expSummary);
-        }
+        setExpSummary(data.student?.expSummary ?? null);
         if (Array.isArray(data.classes)) {
           setClasses(data.classes);
         }

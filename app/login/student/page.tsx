@@ -164,6 +164,7 @@ function StudentAuthContent() {
         return;
       }
 
+      router.refresh();
       router.push('/student-dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to log in');
@@ -639,7 +640,10 @@ function StudentAuthContent() {
 
                 <button
                   type="button"
-                  onClick={() => router.push('/student-dashboard')}
+                  onClick={() => {
+                    router.refresh();
+                    router.push('/student-dashboard');
+                  }}
                   className="w-full bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold py-4 rounded-xl border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-base"
                 >
                   Start Learning

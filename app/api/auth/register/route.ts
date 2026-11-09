@@ -3,6 +3,14 @@ import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { SignJWT } from 'jose';
+import {
+  LEGACY_SESSION_COOKIE,
+  STUDENT_SESSION_COOKIE,
+  TEACHER_SESSION_COOKIE,
+  NO_STORE_HEADERS,
+} from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 const scrypt = promisify(scryptCallback);
 
@@ -107,15 +115,21 @@ export async function POST(request: Request) {
             avatarSeed: avatarSeed || String(userId),
           },
         },
-        { status: 201 }
+        { status: 201, headers: NO_STORE_HEADERS }
       );
 
-      response.cookies.set('lms_session', token, {
+      const cookieOptions = {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'lax' as const,
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
-      });
+      };
+      response.cookies.set(LEGACY_SESSION_COOKIE, token, cookieOptions);
+      if (role === 'student') {
+        response.cookies.set(STUDENT_SESSION_COOKIE, token, cookieOptions);
+      } else if (role === 'teacher') {
+        response.cookies.set(TEACHER_SESSION_COOKIE, token, cookieOptions);
+      }
 
       return response;
     } catch (error) {

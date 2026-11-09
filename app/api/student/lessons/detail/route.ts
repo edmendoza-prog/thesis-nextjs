@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, NO_STORE_HEADERS } from '@/lib/auth';
 import { getStudentBadgesAndExp } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
@@ -18,9 +18,9 @@ function formatUploadDate(dateValue?: string | Date | null) {
 
 export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = (await getCurrentUser('student')) || (await getCurrentUser());
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401, headers: NO_STORE_HEADERS });
     }
 
     const { searchParams } = new URL(request.url);

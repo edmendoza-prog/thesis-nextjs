@@ -26,7 +26,7 @@ export async function POST(
   const { section } = await context.params;
 
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }
@@ -216,7 +216,7 @@ export async function GET(
   const selectedDate = searchParams.get('date') ?? new Date().toISOString().slice(0, 10);
 
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }

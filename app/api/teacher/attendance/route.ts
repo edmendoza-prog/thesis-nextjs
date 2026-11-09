@@ -4,7 +4,7 @@ import { getCurrentUserId } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('teacher');
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const userId = await getCurrentUserId();
+    const userId = await getCurrentUserId('teacher');
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }

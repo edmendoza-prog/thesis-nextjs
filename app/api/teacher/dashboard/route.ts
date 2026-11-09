@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser('teacher');
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       return NextResponse.json({ error: 'Not authenticated or unauthorized' }, { status: 401 });
     }

@@ -714,9 +714,9 @@ export async function getStudentBadgesAndExp(studentId: number): Promise<{
   const avgScore =
     percentageScoresChronological.length > 0
       ? Math.round(
-          percentageScoresChronological.reduce((a, b) => a + b, 0) /
-            percentageScoresChronological.length
-        )
+        percentageScoresChronological.reduce((a, b) => a + b, 0) /
+        percentageScoresChronological.length
+      )
       : 0;
 
   // Pending homework check for Zero Backlogs
@@ -1000,11 +1000,11 @@ export async function getStudentBadgesAndExp(studentId: number): Promise<{
     const progressPercent = isUnlocked
       ? 100
       : Math.min(
-          99,
-          Math.round(
-            (evalResult.progressCurrent / Math.max(1, evalResult.progressTarget)) * 100
-          )
-        );
+        99,
+        Math.round(
+          (evalResult.progressCurrent / Math.max(1, evalResult.progressTarget)) * 100
+        )
+      );
 
     const statusObj: StudentBadgeStatus = {
       ...badge,

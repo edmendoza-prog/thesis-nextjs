@@ -173,6 +173,10 @@ function TeacherAuthContent() {
         return;
       }
 
+      try {
+        localStorage.removeItem('teacher_profile');
+      } catch {}
+      router.refresh();
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to log in');
@@ -675,7 +679,13 @@ function TeacherAuthContent() {
 
                 <button
                   type="button"
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => {
+                    try {
+                      localStorage.removeItem('teacher_profile');
+                    } catch {}
+                    router.refresh();
+                    router.push('/dashboard');
+                  }}
                   className="w-full bg-[#0bc2cf] hover:bg-[#0aa9b5] text-white font-bold py-4 rounded-xl border-[1.5px] border-[#0bc2cf] transition-colors cursor-pointer text-base"
                 >
                   Go to Teacher Dashboard

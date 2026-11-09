@@ -3,6 +3,14 @@ import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { SignJWT } from 'jose';
+import {
+  LEGACY_SESSION_COOKIE,
+  STUDENT_SESSION_COOKIE,
+  TEACHER_SESSION_COOKIE,
+  NO_STORE_HEADERS,
+} from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 const scrypt = promisify(scryptCallback);
 
@@ -38,8 +46,22 @@ export async function POST(request: Request) {
       .setExpirationTime('7d')
       .sign(getJwtSecret());
 
-    const response = NextResponse.json({ user: { id: user.id, name: user.name, email: user.email, role: user.user_type } });
-    response.cookies.set('lms_session', token, { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 });
+    const response = NextResponse.json(
+      { user: { id: user.id, name: user.name, email: user.email, role: user.user_type } },
+      { headers: NO_STORE_HEADERS }
+    );
+    const cookieOptions = {
+      httpOnly: true,
+      sameSite: 'lax' as const,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    };
+    response.cookies.set(LEGACY_SESSION_COOKIE, token, cookieOptions);
+    if (user.user_type === 'student') {
+      response.cookies.set(STUDENT_SESSION_COOKIE, token, cookieOptions);
+    } else if (user.user_type === 'teacher' || user.user_type === 'admin') {
+      response.cookies.set(TEACHER_SESSION_COOKIE, token, cookieOptions);
+    }
     return response;
   } catch (error) {
     console.error('Login error:', error);
